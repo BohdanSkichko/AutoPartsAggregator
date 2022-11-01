@@ -1,6 +1,11 @@
-package dto;
+package com.example.demo.dto;
+
+import com.example.demo.entity.SparePart;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Getter
@@ -12,8 +17,5 @@ import lombok.*;
 @AllArgsConstructor
 @Data
 public class Response {
-
-    String description;
-
-    String url;
+    private List<SparePart> sparePartList = new ArrayList<>();
 }

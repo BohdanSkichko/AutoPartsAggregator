@@ -1,4 +1,4 @@
-package repository;
+package com.example.demo.repository;
 
 //import entity.SparePart;
 //import org.springframework.data.jpa.repository.JpaRepository;

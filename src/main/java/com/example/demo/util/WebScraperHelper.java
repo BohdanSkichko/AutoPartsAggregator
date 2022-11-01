@@ -1,4 +1,4 @@
-package util;
+package com.example.demo.util;
 
 import lombok.AllArgsConstructor;
 import org.jsoup.Jsoup;
