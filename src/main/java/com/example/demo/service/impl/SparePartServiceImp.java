@@ -16,20 +16,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.amqp.RabbitProperties;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import com.example.demo.service.SparePartService;
+import org.springframework.util.StringUtils;
+
 
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.function.BinaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static java.lang.Integer.valueOf;
 
 
 @Service
@@ -53,7 +50,6 @@ public class SparePartServiceImp implements SparePartService {
     private static final String ALERT_AVTOPRO = "По вашему запросу ничего не найдено";
     private static final String AVTO_PLUS_SITE = "https://avto-plus.com.ua/";
     private static final String UKRPARTS_SITE = "https://ukrparts.com.ua";
-
     private static final int CORE = 6;
 
 
@@ -179,8 +175,8 @@ public class SparePartServiceImp implements SparePartService {
                 }
                 sparePart.setCost(Integer.parseInt(cost));
                 Elements elementsURL = e.getElementsByTag("a");
-                sparePart.setUrl(UKRPARTS_SITE + elementsURL.attr("href"));
-                if (sparePart.getUrl() != null) {
+                if (StringUtils.hasText(elementsURL.attr("href"))) {
+                    sparePart.setUrl(UKRPARTS_SITE + elementsURL.attr("href"));
                     response.getSparePartList().add(sparePart);
                     break;
                 }
@@ -200,7 +196,7 @@ public class SparePartServiceImp implements SparePartService {
             boolean isFirst = true;
             for (Element el : elements) {
                 SparePart sparePart = new SparePart();
-                if (!StringUtils.isEmpty(el.attr("href"))) {
+                if (StringUtils.hasText(el.attr("href"))) {
                     if (isFirst) {
                         isFirst = false;
                         continue;
@@ -212,8 +208,6 @@ public class SparePartServiceImp implements SparePartService {
                     String cost = text.replaceAll(REPLACE_TEXT_IN_PRICE, "");
                     sparePart.setCost(Integer.parseInt(cost));
                     sparePart.setUrl(AVTO_PLUS_SITE + el.attr("href"));
-                }
-                if (sparePart.getUrl() != null) {
                     response.getSparePartList().add(sparePart);
                     break;
                 }
@@ -275,9 +269,8 @@ public class SparePartServiceImp implements SparePartService {
                 .getText().replaceAll("\n", " ")
                 .concat(" ListWithReferences"));
         sparePart.setSerialNumber(serialNumber);
-        String url = elementsListWithSparePart.get(numberWebElement).getAttribute("href");
-        if (url != null) {
-            sparePart.setUrl(url);
+        if (StringUtils.hasText(elementsListWithSparePart.get(numberWebElement).getAttribute("href"))) {
+            sparePart.setUrl(elementsListWithSparePart.get(numberWebElement).getAttribute("href"));
             response.getSparePartList().add(sparePart);
         }
     }
