@@ -34,6 +34,6 @@ public class RequestServiceTest {
         Mockito.verify(parts).add(sparePart);
         Mockito.verify(parts).add(sparePart1);
         assertEquals(2, parts.size());
-
     }
+
 }

@@ -11,7 +11,7 @@ import java.util.concurrent.Executor;
 
 @EnableAsync
 @Configuration
-public class AsyncConfig  {
+public class AsyncConfig implements AsyncConfigurer {
 
     @Bean(name = "taskExecutor")
     public Executor taskExecutor() {
@@ -21,6 +21,11 @@ public class AsyncConfig  {
         executor.setQueueCapacity(100);
         executor.initialize();
         return executor;
+    }
+
+    @Override
+    public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
+        return new CustomAsyncExceptionHandler();
     }
 
 }

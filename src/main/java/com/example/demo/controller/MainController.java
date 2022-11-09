@@ -31,7 +31,7 @@ public class MainController {
             @ApiResponse(code = 400, message = "bad request syntax"),
             @ApiResponse(code = 404, message = "not found")
     })
-    public CompletableFuture<Response> getSparePartBySerialNumber(@PathVariable String serialNumber)
+    public Response getSparePartBySerialNumber(@PathVariable String serialNumber)
             throws ExecutionException, InterruptedException {
         return spareService.searchSparePartBySerialNumber(serialNumber);
     }

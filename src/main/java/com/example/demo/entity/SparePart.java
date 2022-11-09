@@ -7,11 +7,12 @@ import org.jsoup.select.Evaluator;
 
 import javax.annotation.Generated;
 import java.io.Serializable;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @EqualsAndHashCode
 @Data
 public class SparePart {

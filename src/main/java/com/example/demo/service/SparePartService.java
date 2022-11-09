@@ -7,6 +7,6 @@ import java.util.concurrent.ExecutionException;
 
 
 public interface SparePartService {
-    CompletableFuture<Response> searchSparePartBySerialNumber(String serialNumber) throws ExecutionException, InterruptedException;
+    Response searchSparePartBySerialNumber(String serialNumber) throws ExecutionException, InterruptedException;
 
 }

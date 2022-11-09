@@ -4,6 +4,7 @@ import com.example.demo.entity.SparePart;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,6 +17,6 @@ import java.util.List;
 @RequiredArgsConstructor
 @AllArgsConstructor
 @Data
-public class Response {
+public class Response  {
     private List<SparePart> sparePartList = new ArrayList<>();
 }
