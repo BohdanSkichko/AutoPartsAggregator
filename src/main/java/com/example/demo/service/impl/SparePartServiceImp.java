@@ -16,7 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import com.example.demo.service.SparePartService;
 import org.springframework.util.StringUtils;
@@ -38,11 +37,8 @@ public class SparePartServiceImp implements SparePartService {
     Logger logger = LoggerFactory.getLogger(SparePartServiceImp.class);
     @Value("#{'${website.urls}'.split(',')}")
     List<String> urls;
-    @Value("#{'${pages}'}")
+    @Value("#{${pages}}")
     private int pages;
-
-    @Autowired
-    private Environment environment;
     @Autowired
     Executor executor;
     private static final String AVTOPRO = "https://avto.pro";
@@ -50,7 +46,7 @@ public class SparePartServiceImp implements SparePartService {
     private static final String ALERT_AVTOPRO = "По вашему запросу ничего не найдено";
     private static final String AVTO_PLUS_SITE = "https://avto-plus.com.ua/";
     private static final String UKRPARTS_SITE = "https://ukrparts.com.ua";
-    private static final int CORE = 6;
+    private static final int CORE = 4;
 
 
     public Response searchSparePartBySerialNumber(String serialNumber) {
@@ -84,7 +80,7 @@ public class SparePartServiceImp implements SparePartService {
                                                                      String snippetSiteName) {
         return CompletableFuture.supplyAsync(
                 () -> {
-                    logger.info("find first spare parts " + Thread.currentThread().getName());
+                    logger.info("find spare parts " + Thread.currentThread().getName());
                     long start = System.currentTimeMillis();
                     extractedForAllSite(serialNumber, response, snippetSiteName);
                     long end = System.currentTimeMillis();
@@ -105,57 +101,6 @@ public class SparePartServiceImp implements SparePartService {
                 extractDataFromUkrparts(response, url, serialNumber);
             }
         }
-    }
-
-    private void sortByCost(Response result) {
-        List<SparePart> sortByCost = result.getSparePartList().stream().sorted(Comparator.comparingInt(SparePart::getCost))
-                .collect(Collectors.toList());
-        result.setSparePartList(sortByCost);
-    }
-
-    private void extractDataFromAvtoPlus(Response response, String url, String serialNumber) {
-        try {
-            //set first page
-            int quantityPages = 1;
-            // url = patternFromProperties + page + patterForIterationPages + serialNumber(nameSparePart)
-            String patternForIterationPages = "/?search=";
-            Document searchPage = Jsoup.connect(url + quantityPages + patternForIterationPages + serialNumber).get();
-            // search  quantity pages
-            Element listPages = searchPage.
-                    getElementsByClass("wm-pagination__btn js-submit-pagination load-more-search").first();
-            if (listPages != null) {
-                Element elementWithQuantityPages = listPages.getElementsByAttribute("data-total").first();
-                quantityPages = Integer.parseInt(elementWithQuantityPages.attr("data-total"));
-                if (quantityPages > pages) { // if pages > 10, let's leave just 10;
-                    quantityPages = pages;
-                }
-            }
-            //  iteration for pages -> search sparePart
-            List<Integer> integerListPages = new ArrayList<>();
-            for (int i = 1; i <= quantityPages; i++) {
-                integerListPages.add(i);
-            }
-            getSparePartFromParallelStreamAvtoPlus(response, url, serialNumber, patternForIterationPages, integerListPages);
-        } catch (IOException | ExecutionException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void getSparePartFromParallelStreamAvtoPlus(
-            Response response, String url, String serialNumber, String patternForIterationPages,
-            List<Integer> integerListPages) throws InterruptedException, ExecutionException {
-        ForkJoinPool myPool = new ForkJoinPool(CORE);
-        myPool.submit(() ->
-                integerListPages.parallelStream()
-                        .forEach(pageNumber -> {
-                            try {
-                                System.out.println(Thread.currentThread().getName());
-                                getSparePartOnPageUkrparts(response, url, serialNumber, patternForIterationPages,
-                                        pageNumber);
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
-                        })).get();
     }
 
     private void extractDataFromUkrparts(Response response, String url, String serialNumber) {
@@ -186,40 +131,71 @@ public class SparePartServiceImp implements SparePartService {
         }
     }
 
-    private void getSparePartOnPageUkrparts(Response response, String url, String serialNumber,
-                                            String patternForIterationPages, int pages) throws IOException {
-        Document document = Jsoup.connect(url + pages + patternForIterationPages + serialNumber).get();
-        List<Element> listElementInside = new ArrayList<>(document.
-                getElementsByClass("goods__item product-card product-card--categoryPage"));
-        for (Element e : listElementInside) {
-            Elements elements = e.getElementsByTag("a");
-            boolean isFirst = true;
-            for (Element el : elements) {
-                SparePart sparePart = new SparePart();
-                if (StringUtils.hasText(el.attr("href"))) {
-                    if (isFirst) {
-                        isFirst = false;
-                        continue;
-                    }
-                    sparePart.setDescription(el.text());
-                    sparePart.setSerialNumber(serialNumber);
-                    Elements elementsCost = e.getElementsByClass("basket-button__uah");
-                    String text = elementsCost.text();
-                    String cost = text.replaceAll(REPLACE_TEXT_IN_PRICE, "");
-                    sparePart.setCost(Integer.parseInt(cost));
-                    sparePart.setUrl(AVTO_PLUS_SITE + el.attr("href"));
-                    response.getSparePartList().add(sparePart);
-                    break;
+    private void extractDataFromAvtoPlus(Response response, String url, String serialNumber) {
+        try {
+            //set first page
+            int quantityPages = 1;
+            // url = patternFromProperties + page + patterForIterationPages + serialNumber(nameSparePart)
+            String patternForIterationPages = "/?search=";
+            Document searchPage = Jsoup.connect(url + quantityPages + patternForIterationPages + serialNumber).get();
+            // search  quantity pages
+            Element listPages = searchPage.
+                    getElementsByClass("wm-pagination__btn js-submit-pagination load-more-search").first();
+            if (listPages != null) {
+                Element elementWithQuantityPages = listPages.getElementsByAttribute("data-total").first();
+                quantityPages = Integer.parseInt(elementWithQuantityPages.attr("data-total"));
+                if (quantityPages > pages) { // if pages > 10, let's leave just 10;
+                    quantityPages = pages;
                 }
             }
+            //  iteration for pages -> search sparePart int i = 1 - first page
+            for (int i = 1; i <= quantityPages; i++) {
+                getSparePartOnPageAvtoPlus(response, url, serialNumber, patternForIterationPages, i);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
+    }
+
+    private void getSparePartOnPageAvtoPlus(Response response, String url, String serialNumber,
+                                            String patternForIterationPages, int pages) {
+        CompletableFuture.supplyAsync(() -> {
+            try {
+                Document document = Jsoup.connect(url + pages + patternForIterationPages + serialNumber).get();
+                List<Element> listElementInside = new ArrayList<>(document.
+                        getElementsByClass("goods__item product-card product-card--categoryPage"));
+                for (Element e : listElementInside) {
+                    Elements elements = e.getElementsByTag("a");
+                    boolean isFirst = true;
+                    for (Element el : elements) {
+                        SparePart sparePart = new SparePart();
+                        if (StringUtils.hasText(el.attr("href"))) {
+                            if (isFirst) {
+                                isFirst = false;
+                                continue;
+                            }
+                            sparePart.setDescription(el.text());
+                            sparePart.setSerialNumber(serialNumber);
+                            Elements elementsCost = e.getElementsByClass("basket-button__uah");
+                            String text = elementsCost.text();
+                            String cost = text.replaceAll(REPLACE_TEXT_IN_PRICE, "");
+                            sparePart.setCost(Integer.parseInt(cost));
+                            sparePart.setUrl(AVTO_PLUS_SITE + el.attr("href"));
+                            response.getSparePartList().add(sparePart);
+                            break;
+                        }
+                    }
+                }
+                return response;
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }, executor);
     }
 
     private void extractAvtoPro(Response response, String url, String serialNumber) {
 
         try {
-            System.setProperty("webdriver.chrome.driver", Objects.requireNonNull(environment.getProperty("chromeDriver")));
-            //WebDriverManager.firefoxdriver().setup();
             WebDriver driver = new ChromeDriver();
             //get connection with site
             driver.get(url);
@@ -239,11 +215,33 @@ public class SparePartServiceImp implements SparePartService {
                 if (elementsListWithSparePart.size() > pages) {
                     quantityElements = pages;
                 }
-                for (int i = 0; i < quantityElements; i++) {
+                for (int i = 0; i<quantityElements; i ++){
                     integerListPages.add(i);
                 }
                 getSparePartFromParallelStreamAvtopro(response, serialNumber, integerListPages, elementsListWithSparePart);
+//                for (int i = 0; i < quantityElements; i++) {
+//                    int finalI = i;
+//                    CompletableFuture.supplyAsync(() -> {
+//                        try {
+//                            SparePart sparePart = new SparePart();
+//                            sparePart.setDescription(elementsListWithSparePart.get(finalI)
+//                                    .findElement(By.className("ap-search__column"))
+//                                    .getText().replaceAll("\n", " ")
+//                                    .concat(" ListWithReferences"));
+//                            sparePart.setSerialNumber(serialNumber);
+//                            if (StringUtils.hasText(elementsListWithSparePart.get(finalI).getAttribute("href"))) {
+//                                sparePart.setUrl(elementsListWithSparePart.get(finalI).getAttribute("href"));
+//                                response.getSparePartList().add(sparePart);
+//                            }
+//                            return response;
+//                        } catch (Exception e) {
+//                            System.out.println(e.getMessage());
+//                            throw new RuntimeException(e);
+//                        }
+//                    }, executor);
+//                }
             }
+//            Thread.sleep(1000);
             driver.quit();
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException(e);
@@ -253,7 +251,7 @@ public class SparePartServiceImp implements SparePartService {
     private void getSparePartFromParallelStreamAvtopro(
             Response response, String serialNumber, List<Integer> integerListPages,
             List<WebElement> elementsListWithSparePart) throws InterruptedException, ExecutionException {
-        ForkJoinPool myPool = new ForkJoinPool(CORE);
+        ForkJoinPool myPool = new ForkJoinPool();
         myPool.submit(() ->
                 integerListPages.parallelStream()
                         .forEach(numberWebElement -> {
@@ -262,7 +260,8 @@ public class SparePartServiceImp implements SparePartService {
                         })).get();
     }
 
-    private void getSparePartFromWebElementAvtoPro(Response response, @NotNull List<WebElement> elementsListWithSparePart, String serialNumber, int numberWebElement) {
+    private void getSparePartFromWebElementAvtoPro(
+            Response response, List<WebElement> elementsListWithSparePart, String serialNumber, int numberWebElement) {
         SparePart sparePart = new SparePart();
         sparePart.setDescription(elementsListWithSparePart.get(numberWebElement)
                 .findElement(By.className("ap-search__column"))
@@ -273,5 +272,12 @@ public class SparePartServiceImp implements SparePartService {
             sparePart.setUrl(elementsListWithSparePart.get(numberWebElement).getAttribute("href"));
             response.getSparePartList().add(sparePart);
         }
+    }
+
+
+    private void sortByCost(Response result) {
+        List<SparePart> sortByCost = result.getSparePartList().stream().sorted(Comparator.comparingInt(SparePart::getCost))
+                .collect(Collectors.toList());
+        result.setSparePartList(sortByCost);
     }
 }
