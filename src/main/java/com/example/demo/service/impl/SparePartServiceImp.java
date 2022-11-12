@@ -1,11 +1,11 @@
+/*
 package com.example.demo.service.impl;
 
 
-import com.example.demo.dto.Response;
+import com.example.demo.entity.Response;
 import com.example.demo.entity.SparePart;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import org.jetbrains.annotations.NotNull;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -31,7 +31,6 @@ import java.util.stream.Stream;
 @Service
 @AllArgsConstructor
 @NoArgsConstructor
-
 public class SparePartServiceImp implements SparePartService {
 
     Logger logger = LoggerFactory.getLogger(SparePartServiceImp.class);
@@ -41,6 +40,8 @@ public class SparePartServiceImp implements SparePartService {
     private int pages;
     @Autowired
     Executor executor;
+    @Autowired
+    AvtoProServiceImp avtoProServiceImp;
     private static final String AVTOPRO = "https://avto.pro";
     private static final String REPLACE_TEXT_IN_PRICE = "[а-яА-Я: ]+";
     private static final String ALERT_AVTOPRO = "По вашему запросу ничего не найдено";
@@ -50,7 +51,7 @@ public class SparePartServiceImp implements SparePartService {
 
 
     public Response searchSparePartBySerialNumber(String serialNumber) {
-        List<Response> listResponse = getListResponse(serialNumber);
+        List<Response> listResponse = getResponseList(serialNumber);
         Response result = new Response();
         for (Response response : listResponse) {
             result.getSparePartList().addAll(response.getSparePartList());
@@ -64,8 +65,8 @@ public class SparePartServiceImp implements SparePartService {
         return result;
     }
 
-    @NotNull
-    private List<Response> getListResponse(String serialNumber) {
+
+    private List<Response> getResponseList(String serialNumber) {
         Response responseAvtoPlus = new Response();
         CompletableFuture<Response> result1 = getResponseCompletableFuture(serialNumber, responseAvtoPlus, AVTO_PLUS_SITE);
         Response responseUkrParts = new Response();
@@ -75,21 +76,20 @@ public class SparePartServiceImp implements SparePartService {
         return Stream.of(result1, result2, result3).map(CompletableFuture::join).collect(Collectors.toList());
     }
 
-    @NotNull
     private CompletableFuture<Response> getResponseCompletableFuture(String serialNumber, Response response,
                                                                      String snippetSiteName) {
         return CompletableFuture.supplyAsync(
                 () -> {
                     logger.info("find spare parts " + Thread.currentThread().getName());
                     long start = System.currentTimeMillis();
-                    extractedForAllSite(serialNumber, response, snippetSiteName);
+                    extractedForAllSites(serialNumber, response, snippetSiteName);
                     long end = System.currentTimeMillis();
                     System.out.println(Thread.currentThread().getName() + " finish " + (end - start));
                     return response;
                 }, executor);
     }
 
-    private void extractedForAllSite(String serialNumber, Response response, String snippetSiteName) {
+    private void extractedForAllSites(String serialNumber, Response response, String snippetSiteName) {
         for (String url : urls) {
             if (url.contains(snippetSiteName) && url.contains(AVTO_PLUS_SITE)) {
                 extractDataFromAvtoPlus(response, url, serialNumber);
@@ -148,7 +148,6 @@ public class SparePartServiceImp implements SparePartService {
                     quantityPages = pages;
                 }
             }
-            //  iteration for pages -> search sparePart int i = 1 - first page
             for (int i = 1; i <= quantityPages; i++) {
                 getSparePartOnPageAvtoPlus(response, url, serialNumber, patternForIterationPages, i);
             }
@@ -175,7 +174,6 @@ public class SparePartServiceImp implements SparePartService {
                                 continue;
                             }
                             sparePart.setDescription(el.text());
-                            sparePart.setSerialNumber(serialNumber);
                             Elements elementsCost = e.getElementsByClass("basket-button__uah");
                             String text = elementsCost.text();
                             String cost = text.replaceAll(REPLACE_TEXT_IN_PRICE, "");
@@ -193,91 +191,116 @@ public class SparePartServiceImp implements SparePartService {
         }, executor);
     }
 
-    private void extractAvtoPro(Response response, String url, String serialNumber) {
-
-        try {
-            WebDriver driver = new ChromeDriver();
-            //get connection with site
-            driver.get(url);
-            //class search with value for part searching and set SerialNumber
-            driver.findElement(By.className("ap-search__input")).sendKeys(serialNumber);
-            //wait selenium input my value
-            Thread.sleep(1000);
-            WebElement webElementAlert = driver.findElement
-                    (By.xpath("//*[@id=\"ap-search\"]/div/div[2]/div/div[1]/div[1]"));
-            // check
-            if (!webElementAlert.getText().contains(ALERT_AVTOPRO)) {
-                //  iteration for pages -> search sparePart
-                List<Integer> integerListPages = new ArrayList<>();
-                List<WebElement> elementsListWithSparePart = driver.findElement(By.className("ap-search__result-wrapper"))
-                        .findElements(By.tagName("a"));
-                int quantityElements = elementsListWithSparePart.size();
-                if (elementsListWithSparePart.size() > pages) {
-                    quantityElements = pages;
-                }
-                for (int i = 0; i<quantityElements; i ++){
-                    integerListPages.add(i);
-                }
-                getSparePartFromParallelStreamAvtopro(response, serialNumber, integerListPages, elementsListWithSparePart);
-//                for (int i = 0; i < quantityElements; i++) {
-//                    int finalI = i;
-//                    CompletableFuture.supplyAsync(() -> {
-//                        try {
-//                            SparePart sparePart = new SparePart();
-//                            sparePart.setDescription(elementsListWithSparePart.get(finalI)
-//                                    .findElement(By.className("ap-search__column"))
-//                                    .getText().replaceAll("\n", " ")
-//                                    .concat(" ListWithReferences"));
-//                            sparePart.setSerialNumber(serialNumber);
-//                            if (StringUtils.hasText(elementsListWithSparePart.get(finalI).getAttribute("href"))) {
-//                                sparePart.setUrl(elementsListWithSparePart.get(finalI).getAttribute("href"));
-//                                response.getSparePartList().add(sparePart);
-//                            }
-//                            return response;
-//                        } catch (Exception e) {
-//                            System.out.println(e.getMessage());
-//                            throw new RuntimeException(e);
-//                        }
-//                    }, executor);
-//                }
-            }
+//    private void extractAvtoPro(Response response, String url, String serialNumber) {
+//
+//        try {
+//            WebDriver driver = new ChromeDriver();
+//            //get connection with site
+//            driver.get(url);
+//            //class search with value for part searching and set SerialNumber
+//            driver.findElement(By.className("ap-search__input")).sendKeys(serialNumber);
+//            //wait selenium input my value
 //            Thread.sleep(1000);
-            driver.quit();
-        } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void getSparePartFromParallelStreamAvtopro(
-            Response response, String serialNumber, List<Integer> integerListPages,
-            List<WebElement> elementsListWithSparePart) throws InterruptedException, ExecutionException {
-        ForkJoinPool myPool = new ForkJoinPool();
-        myPool.submit(() ->
-                integerListPages.parallelStream()
-                        .forEach(numberWebElement -> {
-                            System.out.println(Thread.currentThread().getName());
-                            getSparePartFromWebElementAvtoPro(response, elementsListWithSparePart, serialNumber, numberWebElement);
-                        })).get();
-    }
-
-    private void getSparePartFromWebElementAvtoPro(
-            Response response, List<WebElement> elementsListWithSparePart, String serialNumber, int numberWebElement) {
-        SparePart sparePart = new SparePart();
-        sparePart.setDescription(elementsListWithSparePart.get(numberWebElement)
-                .findElement(By.className("ap-search__column"))
-                .getText().replaceAll("\n", " ")
-                .concat(" ListWithReferences"));
-        sparePart.setSerialNumber(serialNumber);
-        if (StringUtils.hasText(elementsListWithSparePart.get(numberWebElement).getAttribute("href"))) {
-            sparePart.setUrl(elementsListWithSparePart.get(numberWebElement).getAttribute("href"));
-            response.getSparePartList().add(sparePart);
-        }
-    }
-
+//            WebElement webElementAlert = driver.findElement
+//                    (By.xpath("//*[@id=\"ap-search\"]/div/div[2]/div/div[1]/div[1]"));
+//            // check
+//            if (!webElementAlert.getText().contains(ALERT_AVTOPRO)) {
+//                //  iteration for pages -> search sparePart
+//                List<Integer> integerListPages = new ArrayList<>();
+//                List<WebElement> elementsListWithSparePart = driver.findElement(By.className("ap-search__result-wrapper"))
+//                        .findElements(By.tagName("a"));
+//                int quantityElements = elementsListWithSparePart.size();
+//                if (elementsListWithSparePart.size() > pages) {
+//                    quantityElements = pages;
+//                }
+//                for (int i = 0; i < quantityElements; i++) {
+//                    integerListPages.add(i);
+//                }
+//                getSparePartFromParallelStreamAvtopro(response, serialNumber, integerListPages, elementsListWithSparePart);
+//            }
+//            driver.quit();
+//        } catch (InterruptedException | ExecutionException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
+//
+//    private void getSparePartFromParallelStreamAvtopro(
+//            Response response, String serialNumber, List<Integer> integerListPages,
+//            List<WebElement> elementsListWithSparePart) throws InterruptedException, ExecutionException {
+//        ForkJoinPool myPool = new ForkJoinPool();
+//        myPool.submit(() ->
+//                integerListPages.parallelStream()
+//                        .forEach(numberWebElement -> {
+//                            System.out.println(Thread.currentThread().getName());
+//                            getSparePartFromWebElementAvtoPro(response, elementsListWithSparePart, serialNumber, numberWebElement);
+//                        })).get();
+//    }
+//
+//    private void getSparePartFromWebElementAvtoPro(
+//            Response response, List<WebElement> elementsListWithSparePart, String serialNumber, int numberWebElement) {
+//        SparePart sparePart = new SparePart();
+//        sparePart.setDescription(elementsListWithSparePart.get(numberWebElement)
+//                .findElement(By.className("ap-search__column"))
+//                .getText().replaceAll("\n", " ")
+//                .concat(" ListWithReferences"));
+//        sparePart.setSerialNumber(serialNumber);
+//        if (StringUtils.hasText(elementsListWithSparePart.get(numberWebElement).getAttribute("href"))) {
+//            sparePart.setUrl(elementsListWithSparePart.get(numberWebElement).getAttribute("href"));
+//            response.getSparePartList().add(sparePart);
+//        }
+//    }
 
     private void sortByCost(Response result) {
         List<SparePart> sortByCost = result.getSparePartList().stream().sorted(Comparator.comparingInt(SparePart::getCost))
                 .collect(Collectors.toList());
         result.setSparePartList(sortByCost);
     }
-}
+
+
+//    @Override
+//    public String response(String serialNumber) {
+//        HttpClient httpClient = HttpClientBuilder.create().build();
+//        ClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
+//        String url = "https://avto.pro/api/v1/search/query/";
+//        RestTemplate restTemplate = new RestTemplate(requestFactory);
+//
+//        Query query = new Query();
+//        query.setQuery(serialNumber);
+//        query.setRegionId(1);
+//        query.setSuggestionType("Regular");
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.set("Accept", MediaType.ALL_VALUE);
+//        headers.set("Content-Type", MediaType.APPLICATION_JSON_VALUE);
+//        HttpEntity<Query> requestBody = new HttpEntity<>(query, headers);
+//        ResponseEntity<Suggestions> response = restTemplate.exchange(url, HttpMethod.PUT, requestBody, Suggestions.class);
+//        return response.toString();
+
+
+//        RequestCallback requestCallback(final Foo updatedInstance) {
+//            return clientHttpRequest -> {
+//                ObjectMapper mapper = new ObjectMapper();
+//                mapper.writeValue(clientHttpRequest.getBody(), updatedInstance);
+//                clientHttpRequest.getHeaders().add(
+//                        HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
+//                clientHttpRequest.getHeaders().add(
+//                        HttpHeaders.AUTHORIZATION, "Basic " + getBase64EncodedLogPass());
+//            };
+//        }
+//        String url = "https://avto.pro/api/v1/search/query/";
+//        RestTemplate restTemplate = new RestTemplate();
+//        HttpEntity<Query> request = new HttpEntity<>(new Query(serialNumber));
+//        ResponseEntity<Suggestions> response = restTemplate
+//                .exchange(url, HttpMethod.POST, request, Suggestions.class);
+
+//        Suggestions updatedInstance = new Suggestions();
+//        updatedInstance.setTitle(response.getBody().getTitle());
+//        String resourceUrl =fooResourceUrl + '/' + response.getBody().getId();
+//        restTemplate.execute(
+//                resourceUrl,
+//                HttpMethod.PUT,
+//                requestCallback(updatedInstance),
+//                clientHttpResponse -> null);
+
+    }
+
+*/

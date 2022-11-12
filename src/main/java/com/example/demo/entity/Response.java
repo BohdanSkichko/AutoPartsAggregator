@@ -1,4 +1,4 @@
-package com.example.demo.dto;
+package com.example.demo.entity;
 
 import com.example.demo.entity.SparePart;
 import com.fasterxml.jackson.annotation.JsonProperty;
