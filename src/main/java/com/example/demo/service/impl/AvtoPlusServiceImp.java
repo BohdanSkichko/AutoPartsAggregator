@@ -2,6 +2,8 @@ package com.example.demo.service.impl;
 
 import com.example.demo.entity.Response;
 import com.example.demo.entity.SparePart;
+import com.example.demo.exeptionhendler.BusinessHandledException;
+import com.example.demo.helper.EnumStringPathHolder;
 import com.example.demo.service.SparePartService;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -27,88 +29,108 @@ import java.util.concurrent.Executor;
 @NoArgsConstructor
 public class AvtoPlusServiceImp implements SparePartService {
     @Autowired
-    Executor executor;
+    private Executor executor;
     @Value("#{${pages}}")
     private int pages;
-    Logger logger = LoggerFactory.getLogger(AvtoPlusServiceImp.class);
+    @Value("#{'${website.urls}'.split(',')}")
+    private List<String> urls;
+    private final static String AVTO_PLUS_EXCEPTION = "AVTO_PLUS_EXCEPTION";
+    private final Logger logger = LoggerFactory.getLogger(AvtoPlusServiceImp.class);
+    private static final String PATTERN_FOR_ITERATION_PAGES = "/?search=";
 
-    private static final String URL_FOR_SEARCH = "https://avto-plus.com.ua/ua/search/";
-    private static final String REPLACE_TEXT_IN_PRICE = "[а-яА-Я: ]+";
-    private static final String AVTO_PLUS_SITE = "https://avto-plus.com.ua/";
     @Override
     public Response searchSparePartBySerialNumber(String serialNumber) {
         Response response = new Response();
-        return  getResponseCompletableFuture(serialNumber,response).join();
+        return callRemoteHost(serialNumber, response).join();
     }
 
-    private CompletableFuture<Response> getResponseCompletableFuture(String serialNumber, Response response) {
+    private CompletableFuture<Response> callRemoteHost(String serialNumber, Response response) {
         return CompletableFuture.supplyAsync(
                 () -> {
                     logger.info("find spare parts AVTO PLUS " + Thread.currentThread().getName());
-                    long start = System.currentTimeMillis();
-                    extractDataFromAvtoPlus(response, serialNumber);
-                    long end = System.currentTimeMillis();
-                    System.out.println(Thread.currentThread().getName() + " finish " + (end - start));
+                    try {
+                        extractDataFromAvtoPlus(response, serialNumber);
+                    } catch (BusinessHandledException e) {
+                        e.printStackTrace();
+                        throw new RuntimeException(e);
+                    }
                     return response;
                 }, executor);
     }
-    private void extractDataFromAvtoPlus(Response response, String serialNumber) {
+
+    private void extractDataFromAvtoPlus(Response response, String serialNumber) throws BusinessHandledException {
         try {
-            //set first page
-            int quantityPages = 1;
-            // url = patternFromProperties + page + patterForIterationPages + serialNumber(nameSparePart)
-            String patternForIterationPages = "/?search=";
-            Document searchPage = Jsoup.connect(URL_FOR_SEARCH + quantityPages + patternForIterationPages + serialNumber).get();
-            // search  quantity pages
+            int pagesQuantity = 1;
+            String url = getUrl();
+            Document searchPage = Jsoup.connect(url + pagesQuantity + PATTERN_FOR_ITERATION_PAGES + serialNumber).get();
             Element listPages = searchPage.
-                    getElementsByClass("wm-pagination__btn js-submit-pagination load-more-search").first();
+                    getElementsByClass(EnumStringPathHolder.AVTO_PLUS_DOC_SEARCH_GET_EL_BY_CLASS.getName()).first();
             if (listPages != null) {
-                Element elementWithQuantityPages = listPages.getElementsByAttribute("data-total").first();
-                quantityPages = Integer.parseInt(elementWithQuantityPages.attr("data-total"));
-                if (quantityPages > pages) { // if pages > 10, let's leave just 10;
-                    quantityPages = pages;
+                Element elementWithQuantityPages = listPages
+                        .getElementsByAttribute(EnumStringPathHolder
+                                .GET_EL_BY_ATTRIBUTE_DATA_TOTAL.getName()).first();
+                pagesQuantity = Integer.parseInt(elementWithQuantityPages
+                        .attr(EnumStringPathHolder.GET_EL_BY_ATTRIBUTE_DATA_TOTAL.getName()));
+                if (pagesQuantity > pages) {
+                    pagesQuantity = pages;
                 }
             }
-            for (int i = 1; i <= quantityPages; i++) {
-                getSparePartOnPageAvtoPlus(response, serialNumber, patternForIterationPages, i);
+            for (int i = 1; i <= pagesQuantity; i++) {
+                getSparePartOnPageAvtoPlus(response, serialNumber, i);
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
+            throw new BusinessHandledException(AVTO_PLUS_EXCEPTION, "extractDataFromAvtoPlus", e);
         }
     }
 
-    private void getSparePartOnPageAvtoPlus(Response response, String serialNumber,
-                                            String patternForIterationPages, int pages) {
+
+    private void getSparePartOnPageAvtoPlus(Response response, String serialNumber, int pages) {
         CompletableFuture.supplyAsync(() -> {
             try {
-                Document document = Jsoup.connect(URL_FOR_SEARCH + pages + patternForIterationPages + serialNumber).get();
+                Document document = Jsoup.connect(getUrl() + pages + PATTERN_FOR_ITERATION_PAGES + serialNumber).get();
                 List<Element> listElementInside = new ArrayList<>(document.
-                        getElementsByClass("goods__item product-card product-card--categoryPage"));
+                        getElementsByClass(EnumStringPathHolder.AVTO_PLUS_DOC_GET_EL_BY_CLASS.getName()));
                 for (Element e : listElementInside) {
-                    Elements elements = e.getElementsByTag("a");
-                    boolean isFirst = true;
-                    for (Element el : elements) {
-                        SparePart sparePart = new SparePart();
-                        if (StringUtils.hasText(el.attr("href"))) {
-                            if (isFirst) {
-                                isFirst = false;
-                                continue;
-                            }
-                            sparePart.setDescription(el.text());
-                            Elements elementsCost = e.getElementsByClass("basket-button__uah");
-                            String text = elementsCost.text();
-                            String cost = text.replaceAll(REPLACE_TEXT_IN_PRICE, "");
-                            sparePart.setCost(Integer.parseInt(cost));
-                            sparePart.setUrl(AVTO_PLUS_SITE + el.attr("href"));
-                            response.getSparePartList().add(sparePart);
-                            break;
-                        }
-                    }
+                    Elements elements = e.getElementsByTag(EnumStringPathHolder.GET_EL_BY_TAG_A.getName());
+                    processPage(response, e, elements);
                 }
                 return response;
-            } catch (IOException e) {
+            } catch (IOException | BusinessHandledException e) {
+                e.printStackTrace();
                 throw new RuntimeException(e);
             }
         }, executor);
     }
+
+    private void processPage(Response response, Element e, Elements elements) throws BusinessHandledException {
+        try {
+            boolean isFirst = true;
+            for (Element el : elements) {
+                SparePart sparePart = new SparePart();
+                if (StringUtils.hasText(el.attr(EnumStringPathHolder.GET_ATTRIBUTE_HREF.getName()))) {
+                    if (isFirst) {
+                        isFirst = false;
+                        continue;
+                    }
+                    sparePart.setDescription(el.text());
+                    Elements elementsCost = e
+                            .getElementsByClass(EnumStringPathHolder.AVTO_PLUS_EL_GET_PRICE_BY_CLASS.getName());
+                    String text = elementsCost.text();
+                    String cost = text.replaceAll(EnumStringPathHolder.REPLACE_TEXT_IN_PRICE.getName(), "");
+                    sparePart.setCost(Integer.parseInt(cost));
+                    sparePart.setUrl(EnumStringPathHolder.URL_AVTO_PLUS.getName() + el.attr(EnumStringPathHolder.GET_ATTRIBUTE_HREF.getName()));
+                    response.getSparePartList().add(sparePart);
+                    break;
+                }
+            }
+        } catch (Exception ex) {
+            throw new BusinessHandledException(AVTO_PLUS_EXCEPTION, "processPage", ex);
+        }
+    }
+
+    private String getUrl() {
+        return urls.stream().filter(s -> s.contains(EnumStringPathHolder.URL_AVTO_PLUS.getName())).findFirst().get();
+    }
+
 }

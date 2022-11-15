@@ -17,6 +17,6 @@ import java.util.List;
 @RequiredArgsConstructor
 @AllArgsConstructor
 @Data
-public class Response  {
+public class Response {
     private List<SparePart> sparePartList = new ArrayList<>();
 }

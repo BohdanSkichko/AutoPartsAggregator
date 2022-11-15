@@ -15,8 +15,8 @@ public class QueryServiceTest {
     @Test
     public void getListSparePart() {
         List<SparePart> parts = Mockito.spy(new ArrayList<>());
-        SparePart sparePart = new SparePart(1, "url", "2002", 100, "2002 part");
-        SparePart sparePart1 = new SparePart(2, "url", "2002", 12, "2001 part2");
+        SparePart sparePart = new SparePart( "url", 100, "2002 part");
+        SparePart sparePart1 = new SparePart( "url",  12, "2001 part2");
         parts.add(sparePart);
         parts.add(sparePart1);
         Mockito.verify(parts).add(sparePart);

@@ -1,11 +1,9 @@
 package com.example.demo.service;
 
 import com.example.demo.entity.Response;
-import com.fasterxml.jackson.core.JsonProcessingException;
-
-import java.util.concurrent.ExecutionException;
+import com.example.demo.exeptionhendler.BusinessHandledException;
 
 
 public interface SparePartService {
-    Response searchSparePartBySerialNumber(String serialNumber);
+    Response searchSparePartBySerialNumber(String serialNumber) throws BusinessHandledException;
 }

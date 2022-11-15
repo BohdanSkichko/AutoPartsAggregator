@@ -2,13 +2,11 @@ package com.example.demo.service.impl;
 
 import com.example.demo.entity.Response;
 import com.example.demo.entity.SparePart;
+import com.example.demo.exeptionhendler.BusinessHandledException;
 import com.example.demo.service.SparePartService;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -22,37 +20,29 @@ import java.util.stream.Stream;
 @NoArgsConstructor
 public class MainServiceImp implements SparePartService {
     @Autowired
-    Executor executor;
+    private AvtoProServiceImp avtoProServiceImp;
     @Autowired
-    AvtoProServiceImp avtoProServiceImp;
+    private AvtoPlusServiceImp avtoPlusServiceImp;
     @Autowired
-    AvtoPlusServiceImp avtoPlusServiceImp;
-    @Autowired
-    UkrPartsServiceImp ukrPartsServiceImp;
+    private UkrPartsServiceImp ukrPartsServiceImp;
 
     @Override
-    public Response searchSparePartBySerialNumber(String serialNumber) {
-        List<Response> listResponse = getResponseList(serialNumber);
+    public Response searchSparePartBySerialNumber(String serialNumber) throws BusinessHandledException {
+        List<Response> listResponse = interrogateRemoteHosts(serialNumber);
         Response result = new Response();
         for (Response response : listResponse) {
             result.getSparePartList().addAll(response.getSparePartList());
         }
-        int idSparePart = 1;
-        for (int i = 0; i < result.getSparePartList().size(); i++) {
-            result.getSparePartList().get(i).setId(idSparePart);
-            result.getSparePartList().get(i).setSerialNumber(serialNumber);
-            idSparePart++;
-        }
-        sortByCost(result);
+//        sortByCost(result);
         return result;
     }
 
 
-    private List<Response> getResponseList(String serialNumber) {
-      Response response1 = avtoPlusServiceImp.searchSparePartBySerialNumber(serialNumber);
-      Response response2 = avtoProServiceImp.searchSparePartBySerialNumber(serialNumber);
-      Response response3 = ukrPartsServiceImp.searchSparePartBySerialNumber(serialNumber);
-      return Stream.of(response1,response2,response3).collect(Collectors.toList());
+    private List<Response> interrogateRemoteHosts(String serialNumber) throws BusinessHandledException {
+        Response avtoPlus = avtoPlusServiceImp.searchSparePartBySerialNumber(serialNumber);
+        Response avtoPro = avtoProServiceImp.searchSparePartBySerialNumber(serialNumber);
+        Response ukrParts = ukrPartsServiceImp.searchSparePartBySerialNumber(serialNumber);
+        return Stream.of(avtoPlus, avtoPro, ukrParts).collect(Collectors.toList());
     }
 
 

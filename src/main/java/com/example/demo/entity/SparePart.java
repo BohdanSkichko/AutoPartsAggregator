@@ -17,9 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Data
 public class SparePart {
 
-    private int id;
     private String url;
-    private String serialNumber;
     private int cost;
     private String description;
 
