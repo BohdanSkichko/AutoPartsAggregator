@@ -19,7 +19,7 @@
     <h3>List Spare Part</h3>
 
     <hr/>
-    <a th:href="@{{index}}" class="btn btn-primary">Search spare part by serial number</a>
+    <a th:href="@{index}" class="btn btn-primary">Search spare part by serial number</a>
     <br/><br/>
     <table class="table table-bordered table-striped" id="sparePartTable">
         <thead>
@@ -32,11 +32,11 @@
         </thead>
         <tbody>
         <tr th:each="spare: ${spare}">
-            <td th:text="${spare.getUrl()}" />
-            <td th:text="${spare.getCost()}" />
-            <td th:text="${spare.getDescription()}" />
+            <td th:text="${spare.url}" />
+            <td th:text="${spare.cost}" />
+            <td th:text="${spare.description}" />
             <td>
-               <a th:href="${spare.getUrl()}" class="btn btn-info">Go to URL</a>
+               <a th:href="${spare.url}" class="btn btn-info">Go to URL</a>
             </td>
         </tr>
         </tbody>
@@ -50,7 +50,7 @@
         $("#sparePartTable").DataTable({
             'aoColumnDefs': [{
                 'bSortable': false,
-                'aTargets': [-1] /* 1st one, start by the right */
+                'aTargets': [-1]
             }]
         });
     })

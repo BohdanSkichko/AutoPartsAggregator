@@ -80,7 +80,7 @@ public class AvtoProServiceImp implements SparePartService {
                         .path(EnumStringPathHolder.JSON_NODE_NAME.getName())
                         .asText();
                 SparePart sparePart = new SparePart();
-                if (node.path(EnumStringPathHolder.JSON_NODE_URI.getName()) != null) {
+                if (node.path(EnumStringPathHolder.JSON_NODE_URI.getName()).asText() != null) {
                     sparePart.setUrl(EnumStringPathHolder.URL_AVTO_PRO.getName() +
                             node.path(EnumStringPathHolder.JSON_NODE_URI.getName()).asText());
                     sparePart.setDescription(node.path(EnumStringPathHolder.JSON_NODE_TITLE.getName()).asText() +
