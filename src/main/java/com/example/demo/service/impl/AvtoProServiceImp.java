@@ -3,10 +3,9 @@ package com.example.demo.service.impl;
 import com.example.demo.dto.Query;
 import com.example.demo.entity.Response;
 import com.example.demo.entity.SparePart;
-import com.example.demo.exeptionhendler.BusinessHandledException;
-import com.example.demo.helper.EnumStringPathHolder;
+import com.example.demo.exeptionhendler.BusinessException;
+import com.example.demo.helper.PropertiesReader;
 import com.example.demo.service.SparePartService;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
@@ -16,9 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-
 import java.util.List;
-
 
 @Service
 @AllArgsConstructor
@@ -30,17 +27,14 @@ public class AvtoProServiceImp implements SparePartService {
     private int pages;
     @Value("#{'${website.urls}'.split(',')}")
     private List<String> urls;
-    private final static String AVTO_PRO_EXCEPTION = "AVTO_PRO_EXCEPTION";
-
 
     @Override
-    public Response searchSparePartBySerialNumber(String serialNumber) throws BusinessHandledException {
+    public Response searchSparePartBySerialNumber(String serialNumber) {
         HttpEntity<String> response = callRemoteHost(serialNumber);
         return getResponseFromHttpEntity(response);
     }
 
-    //thymeleaf
-    private HttpEntity<String> callRemoteHost(String serialNumber) {
+    public HttpEntity<String> callRemoteHost(String serialNumber) {
         Query query = new Query();
         query.setQuery(serialNumber);
 
@@ -54,37 +48,37 @@ public class AvtoProServiceImp implements SparePartService {
     }
 
 
-    private Response getResponseFromHttpEntity(HttpEntity<String> response) throws BusinessHandledException {
+    public Response getResponseFromHttpEntity(HttpEntity<String> response) {
         try {
             Response result = new Response();
             ObjectMapper mapper = new ObjectMapper();
             JsonNode root = mapper.readTree(response.getBody());
-            JsonNode arrayNode = root.path(EnumStringPathHolder.JSON_NODE_SUGGESTIONS.getName());
+            JsonNode arrayNode = root.path(PropertiesReader.getProperties("Suggestions"));
             if (arrayNode.isArray()) {
-                extractedJsonNode(result, arrayNode);
+                extractJsonNode(result, arrayNode);
             }
             return result;
         } catch (Exception e) {
             e.printStackTrace();
-            throw new BusinessHandledException(AVTO_PRO_EXCEPTION, "getResponseFromHttpEntity", e);
+            throw new BusinessException(PropertiesReader.getProperties("avtoProEx"),
+                    "Exception occurred in getResponseFromHttpEntity(): " + e.getMessage(), e);
         }
     }
 
-    private void extractedJsonNode(Response result, JsonNode arrayNode) throws BusinessHandledException {
+    public void extractJsonNode(Response result, JsonNode arrayNode) {
         try {
             for (JsonNode node : arrayNode) {
-                String description = node.path(EnumStringPathHolder.JSON_NODE_FOUND_PART.getName())
-                        .path(EnumStringPathHolder.JSON_NODE_PART.getName())
-                        .path(EnumStringPathHolder.JSON_NODE_CROSSGROUP.getName())
-                        .path(EnumStringPathHolder.JSON_NODE_CATEGORY.getName())
-                        .path(EnumStringPathHolder.JSON_NODE_NAME.getName())
-                        .asText();
+                String description = node.path(PropertiesReader.getProperties("FoundPart"))
+                        .path(PropertiesReader.getProperties("Part"))
+                        .path(PropertiesReader.getProperties("Crossgroup"))
+                        .path(PropertiesReader.getProperties("Category"))
+                        .path(PropertiesReader.getProperties("Name")).asText();
                 SparePart sparePart = new SparePart();
-                if (node.path(EnumStringPathHolder.JSON_NODE_URI.getName()).asText() != null) {
-                    sparePart.setUrl(EnumStringPathHolder.URL_AVTO_PRO.getName() +
-                            node.path(EnumStringPathHolder.JSON_NODE_URI.getName()).asText());
-                    sparePart.setDescription(node.path(EnumStringPathHolder.JSON_NODE_TITLE.getName()).asText() +
-                            " " + description);
+                if (!node.path(PropertiesReader.getProperties("Uri")).asText().equals("null")) {
+                    sparePart.setUrl(PropertiesReader.getProperties("UrlAvtoPro") +
+                            node.path(PropertiesReader.getProperties("Uri")).asText());
+                    sparePart.setDescription(node.path(PropertiesReader.getProperties("Title")).asText() +
+                            PropertiesReader.getProperties("SpareList") + description);
                     result.getSparePartList().add(sparePart);
                     if (result.getSparePartList().size() == pages) {
                         break;
@@ -93,12 +87,13 @@ public class AvtoProServiceImp implements SparePartService {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            throw new BusinessHandledException(AVTO_PRO_EXCEPTION, "extractedJsonNode", e);
+            throw new BusinessException(PropertiesReader.getProperties("avtoProEx"),
+                    "Exception occurred in extractJsonNode(): " + e.getMessage(), e);
         }
     }
 
     private String getUrl() {
         return urls.stream()
-                .filter(s -> s.contains(EnumStringPathHolder.URL_AVTO_PRO.getName())).findFirst().get();
+                .filter(s -> s.contains(PropertiesReader.getProperties("UrlAvtoPro"))).findFirst().get();
     }
 }

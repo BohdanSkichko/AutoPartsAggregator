@@ -1,14 +1,14 @@
 package com.example.demo.exeptionhendler;
 
-public class BusinessHandledException extends Exception {
+public class BusinessException extends RuntimeException {
     private String code;
 
-    public BusinessHandledException(String code, String message) {
+    public BusinessException(String code, String message) {
         super(message);
         this.setCode(code);
     }
 
-    public BusinessHandledException(String code, String message, Throwable cause) {
+    public BusinessException(String code, String message, Throwable cause) {
         super(message, cause);
         this.setCode(code);
     }

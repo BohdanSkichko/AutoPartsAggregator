@@ -1,4 +1,4 @@
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
 
 <head>
     <title>List Spare Part</title>
@@ -19,22 +19,28 @@
     <h3>List Spare Part</h3>
 
     <hr/>
-    <a th:href="@{index}" class="btn btn-primary">Search spare part by serial number</a>
+    <a th:href="@{index}"  class="btn btn-primary">Search spare part by serial number</a>
     <br/><br/>
-    <table class="table table-bordered table-striped" id="sparePartTable">
+    <table class="table table-bordered table-striped" data-page-length='25' id="sparePartTable">
         <thead>
         <tr>
-            <th>Url</th>
             <th>Cost</th>
             <th>Description</th>
+            <th>Url</th>
+            <th>Save</th>
             <th>Action</th>
+
         </tr>
         </thead>
         <tbody>
         <tr th:each="spare: ${spare}">
-            <td th:text="${spare.url}" />
             <td th:text="${spare.cost}" />
             <td th:text="${spare.description}" />
+            <td th:text="${spare.url}" />
+            <th>
+                <a th:href="@{save(cost=${spare.cost},description=${spare.description},url=${spare.url})}"
+                   class="btn btn-primary">Save info to file </a>
+            </th>
             <td>
                <a th:href="${spare.url}" class="btn btn-info">Go to URL</a>
             </td>
@@ -50,8 +56,11 @@
         $("#sparePartTable").DataTable({
             'aoColumnDefs': [{
                 'bSortable': false,
-                'aTargets': [-1]
-            }]
+                'aTargets': [-1,-2]
+            }],
+            "language": {
+                "search": "Filter result:"
+            },
         });
     })
 </script>

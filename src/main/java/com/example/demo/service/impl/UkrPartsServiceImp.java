@@ -2,12 +2,11 @@ package com.example.demo.service.impl;
 
 import com.example.demo.entity.Response;
 import com.example.demo.entity.SparePart;
-import com.example.demo.exeptionhendler.BusinessHandledException;
-import com.example.demo.helper.EnumStringPathHolder;
+import com.example.demo.exeptionhendler.BusinessException;
+import com.example.demo.helper.PropertiesReader;
 import com.example.demo.service.SparePartService;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import org.jetbrains.annotations.NotNull;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -33,7 +32,6 @@ public class UkrPartsServiceImp implements SparePartService {
     @Value("#{'${website.urls}'.split(',')}")
     private List<String> urls;
     private Logger logger = LoggerFactory.getLogger(UkrPartsServiceImp.class);
-    private static final String UKR_PARTS_EXCEPTION = "UKR_PARTS_EXCEPTION";
 
     @Override
     public Response searchSparePartBySerialNumber(String serialNumber) {
@@ -47,49 +45,57 @@ public class UkrPartsServiceImp implements SparePartService {
                     logger.info("find spare parts UKR PARTS " + Thread.currentThread().getName());
                     try {
                         extractDataFromUkrparts(response, serialNumber);
-                    } catch (BusinessHandledException e) {
+                    } catch (BusinessException e) {
                         throw new RuntimeException(e);
                     }
                     return response;
                 }, executor);
     }
 
-    private void extractDataFromUkrparts(Response response, String serialNumber) throws BusinessHandledException {
+    private void extractDataFromUkrparts(Response response, String serialNumber) {
         try {
             Document document = Jsoup.connect(getUrl() + serialNumber).get();
             List<Element> listElement = new ArrayList<>(document
-                    .getElementsByClass(EnumStringPathHolder.UKR_PARTS_DOC_GET_EL_BY_CLASS.getName()));
-            /*!!!Name*/         extractFromElementList(response, listElement);
+                    .getElementsByClass(PropertiesReader.getProperties("part_box_wrapper")));
+            extractFromElementList(response, listElement);
         } catch (Exception e) {
             e.printStackTrace();
-            throw new BusinessHandledException(UKR_PARTS_EXCEPTION, "extractDataFromUkrparts", e);
+            throw new BusinessException(PropertiesReader.getProperties("ukrPartsEx"),
+                    "Exception occurred in extractDataFromUkrparts: " + e.getMessage(), e);
         }
     }
 
     private void extractFromElementList(Response response, List<Element> listElement) {
-        for (Element e : listElement) {
-            Elements elementsName = e.
-                    getElementsByClass(EnumStringPathHolder.UKR_PARTS_EL_GET_DESCRIPTION_BY_CLASS.getName());
-            SparePart sparePart = new SparePart();
-            sparePart.setDescription(elementsName.text());
-            Elements elementPrice = e.
-                    getElementsByClass(EnumStringPathHolder.UKR_PARTS_EL_GET_PRICE_BY_CLASS.getName());
-            String text = elementPrice.text();
-            String cost = text.replaceAll(EnumStringPathHolder.REPLACE_TEXT_IN_PRICE.getName(), "");
-            if (cost.isEmpty()) {
-                break;
-            }
-            sparePart.setCost(Integer.parseInt(cost));
-            Elements elementsURL = e.getElementsByTag(EnumStringPathHolder.GET_EL_BY_TAG_A.getName());
-            if (StringUtils.hasText(elementsURL.attr(EnumStringPathHolder.GET_ATTRIBUTE_HREF.getName()))) {
-                sparePart.setUrl(EnumStringPathHolder.URL_UKR_PARTS.getName() +
-                        elementsURL.attr(EnumStringPathHolder.GET_ATTRIBUTE_HREF.getName()));
-                response.getSparePartList().add(sparePart);
-                break;
-            }
-        }
+       try {
+           for (Element e : listElement) {
+               Elements elementsName = e.
+                       getElementsByClass(PropertiesReader.getProperties("part_article"));
+               SparePart sparePart = new SparePart();
+               sparePart.setDescription(elementsName.text());
+               Elements elementPrice = e.
+                       getElementsByClass(PropertiesReader.getProperties("price_min"));
+               String text = elementPrice.text();
+               String cost = text.replaceAll(PropertiesReader.getProperties("ReplaceText"), "");
+               if (cost.isEmpty()) {
+                   break;
+               }
+               sparePart.setCost(Integer.parseInt(cost));
+               Elements elementsURL = e.getElementsByTag(PropertiesReader.getProperties("a"));
+               if (StringUtils.hasText(elementsURL.attr(PropertiesReader.getProperties("href")))) {
+                   sparePart.setUrl(PropertiesReader.getProperties("UrlUrkParts") +
+                           elementsURL.attr(PropertiesReader.getProperties("href")));
+                   response.getSparePartList().add(sparePart);
+                   break;
+               }
+           }
+       } catch (Exception e) {
+           e.printStackTrace();
+           throw new BusinessException(PropertiesReader.getProperties("ukrPartsEx"),
+                   "extractFromElementList" + e.getMessage(), e);
+       }
     }
+
     private String getUrl() {
-        return urls.stream().filter(s -> s.contains(EnumStringPathHolder.URL_UKR_PARTS.getName())).findFirst().get();
+        return urls.stream().filter(s -> s.contains(PropertiesReader.getProperties("UrlUrkParts"))).findFirst().get();
     }
 }
