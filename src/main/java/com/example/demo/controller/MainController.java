@@ -1,26 +1,27 @@
 package com.example.demo.controller;
 
 import com.example.demo.entity.SerialNumber;
-import com.example.demo.helper.FileChooser;
 import com.example.demo.service.impl.MainServiceImp;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
-import javax.swing.*;
-import java.awt.*;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
-
+@Slf4j
 @RestController
 @AllArgsConstructor
 @RequestMapping(path = "/api")
@@ -54,30 +55,30 @@ public class MainController {
     }
 
     @GetMapping(path = "save")
-    private ModelAndView save(@RequestParam String cost,
-                              @RequestParam String description,
-                              @RequestParam String url) throws IOException {
-//        System.setProperty("java.awt.headless", "false");
-        File file = new File(description + ".txt");
-        OutputStream outputStream = Files.newOutputStream(file.toPath());
-
-//        FileChooser fileChooser = new FileChooser();
-//        String yourFile = fileChooser.getFile();
-
-//        JFileChooser saveToDirectory = new JFileChooser();
-//        saveToDirectory.setCurrentDirectory(new File
-//                (System.getProperty("user.home") + System.getProperty("file.separator") + "Desktop"));
-
-        FileWriter fileWriter = new FileWriter(file);
-        fileWriter.write("Cost: " + cost + "\n");
-        fileWriter.write("Url: " + url + "\n");
-        fileWriter.close();
-        outputStream.close();
-        ModelAndView modelAndView = new ModelAndView("saveSparePart");
-        modelAndView.addObject("description", description);
-
-
-        return modelAndView;
+    private ResponseEntity<InputStreamResource> save(@RequestParam String cost,
+                                                     @RequestParam String description,
+                                                     @RequestParam String url) {
+        File file = null;
+        ContentDisposition contentDisposition = null;
+        InputStreamResource resource = null;
+        try {
+            file = new File(description + ".txt");
+            FileWriter fileWriter = new FileWriter(file);
+            fileWriter.write("Cost: " + cost + "\n");
+            fileWriter.write("Url: " + url + "\n");
+            resource = new InputStreamResource(Files.newInputStream(file.toPath()), ".txt");
+            fileWriter.close();
+            contentDisposition = ContentDisposition.builder("attachment")
+                    .filename(file.getName(), StandardCharsets.UTF_8)
+                    .build();
+        } catch (IOException e) {
+            log.error("MainController thrown Exception: " + e.getMessage() + " when trying to save a file " + description);
+        }
+        ContentDisposition finalContentDisposition = contentDisposition;
+        return ResponseEntity.ok()
+                .contentLength(file.length())
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .headers(httpHeaders -> httpHeaders.add(HttpHeaders.CONTENT_DISPOSITION, finalContentDisposition.toString()))
+                .body(resource);
     }
-
 }
