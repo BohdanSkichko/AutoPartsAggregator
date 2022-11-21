@@ -10,16 +10,9 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.http.ContentDisposition;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
-
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 
 @Slf4j
 @RestController
@@ -58,27 +51,9 @@ public class MainController {
     private ResponseEntity<InputStreamResource> save(@RequestParam String cost,
                                                      @RequestParam String description,
                                                      @RequestParam String url) {
-        File file = null;
-        ContentDisposition contentDisposition = null;
-        InputStreamResource resource = null;
-        try {
-            file = new File(description + ".txt");
-            FileWriter fileWriter = new FileWriter(file);
-            fileWriter.write("Cost: " + cost + "\n");
-            fileWriter.write("Url: " + url + "\n");
-            resource = new InputStreamResource(Files.newInputStream(file.toPath()), ".txt");
-            fileWriter.close();
-            contentDisposition = ContentDisposition.builder("attachment")
-                    .filename(file.getName(), StandardCharsets.UTF_8)
-                    .build();
-        } catch (IOException e) {
-            log.error("MainController thrown Exception: " + e.getMessage() + " when trying to save a file " + description);
-        }
-        ContentDisposition finalContentDisposition = contentDisposition;
-        return ResponseEntity.ok()
-                .contentLength(file.length())
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .headers(httpHeaders -> httpHeaders.add(HttpHeaders.CONTENT_DISPOSITION, finalContentDisposition.toString()))
-                .body(resource);
+        return mainServiceImp.saveInfoToFileTxt(cost, description, url);
     }
+
+
+
 }
