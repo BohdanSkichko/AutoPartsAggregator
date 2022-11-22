@@ -14,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.io.IOException;
+
 @Slf4j
 @RestController
 @AllArgsConstructor
@@ -48,12 +50,9 @@ public class MainController {
     }
 
     @GetMapping(path = "save")
-    private ResponseEntity<InputStreamResource> save(@RequestParam String cost,
-                                                     @RequestParam String description,
-                                                     @RequestParam String url) {
-        return mainServiceImp.saveInfoToFileTxt(cost, description, url);
+    private ResponseEntity<InputStreamResource> saveResultClientSide(@RequestParam String cost,
+                                                                     @RequestParam String description,
+                                                                     @RequestParam String url) {
+        return mainServiceImp.saveInfoClientSide(cost, description, url);
     }
-
-
-
 }

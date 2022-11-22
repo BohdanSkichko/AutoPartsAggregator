@@ -3,6 +3,7 @@ package com.example.demo.service.impl;
 import com.example.demo.entity.Response;
 import com.example.demo.helper.PropertiesReader;
 import com.example.demo.service.SparePartService;
+import com.sun.xml.internal.messaging.saaj.packaging.mime.internet.MimeBodyPart;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +36,7 @@ public class MainServiceImp implements SparePartService {
     private UkrPartsServiceImp ukrPartsServiceImp;
 
     @Override
-    public Response searchSparePartBySerialNumber(String serialNumber)  {
+    public Response searchSparePartBySerialNumber(String serialNumber) {
         List<Response> listResponse = interrogateRemoteHosts(serialNumber);
         Response result = new Response();
         for (Response response : listResponse) {
@@ -60,28 +61,32 @@ public class MainServiceImp implements SparePartService {
         }
         return responses;
     }
-    public ResponseEntity<InputStreamResource> saveInfoToFileTxt(String cost, String description, String url) {
-        File file = null;
-        ContentDisposition contentDisposition = null;
-        InputStreamResource resource = null;
+
+    public ResponseEntity<InputStreamResource> saveInfoClientSide(String cost, String description, String url) {
+        File file = new File(description + PropertiesReader.getProperties("txt"));
+        ContentDisposition contentDisposition = ContentDisposition.builder(MimeBodyPart.ATTACHMENT)
+                .filename(file.getName(), StandardCharsets.UTF_8)
+                .build();
         try {
-            file = new File(description + PropertiesReader.getProperties("txt"));
             FileWriter fileWriter = new FileWriter(file);
             fileWriter.write(PropertiesReader.getProperties("Cost") + cost + "\n");
             fileWriter.write(PropertiesReader.getProperties("Url") + url + "\n");
-            resource = new InputStreamResource(Files.newInputStream(file.toPath()), ".txt");
             fileWriter.close();
-            contentDisposition = ContentDisposition.builder(PropertiesReader.getProperties("attachment"))
-                    .filename(file.getName(), StandardCharsets.UTF_8)
-                    .build();
+            InputStreamResource resource = new InputStreamResource(Files.newInputStream(file.toPath()));
+            return ResponseEntity.ok()
+                    .contentLength(file.length())
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .headers(httpHeaders -> httpHeaders.add(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString()))
+                    .body(resource);
         } catch (IOException e) {
-            log.error("MainController thrown Exception: " + e.getMessage() + " when trying to save a file " + description);
+            log.error("MainController thrown Exception: " + e.getMessage() + " when trying to save a file on client side " + description);
+        } finally {
+            try {
+                Files.deleteIfExists(file.toPath());
+            } catch (IOException e) {
+                log.error("Exception : " + e.getMessage() + "when deleting a file: " + file.getName() + " on server side");
+            }
         }
-        ContentDisposition finalContentDisposition = contentDisposition;
-        return ResponseEntity.ok()
-                .contentLength(file.length())
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .headers(httpHeaders -> httpHeaders.add(HttpHeaders.CONTENT_DISPOSITION, finalContentDisposition.toString()))
-                .body(resource);
+        return null;
     }
 }
