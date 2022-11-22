@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -63,12 +64,12 @@ public class MainServiceImp implements SparePartService {
     }
 
     public ResponseEntity<InputStreamResource> saveInfoClientSide(String cost, String description, String url) {
-        File file = new File(description + PropertiesReader.getProperties("txt"));
+        File file = new File(description.trim() + PropertiesReader.getProperties("txt"));
         ContentDisposition contentDisposition = ContentDisposition.builder(MimeBodyPart.ATTACHMENT)
                 .filename(file.getName(), StandardCharsets.UTF_8)
                 .build();
         ResponseEntity<InputStreamResource> result = null;
-        try {
+        try{
             FileWriter fileWriter = new FileWriter(file);
             fileWriter.write(PropertiesReader.getProperties("Cost") + cost + "\n");
             fileWriter.write(PropertiesReader.getProperties("Url") + url + "\n");
