@@ -67,13 +67,14 @@ public class MainServiceImp implements SparePartService {
         ContentDisposition contentDisposition = ContentDisposition.builder(MimeBodyPart.ATTACHMENT)
                 .filename(file.getName(), StandardCharsets.UTF_8)
                 .build();
+        ResponseEntity<InputStreamResource> result = null;
         try {
             FileWriter fileWriter = new FileWriter(file);
             fileWriter.write(PropertiesReader.getProperties("Cost") + cost + "\n");
             fileWriter.write(PropertiesReader.getProperties("Url") + url + "\n");
             fileWriter.close();
             InputStreamResource resource = new InputStreamResource(Files.newInputStream(file.toPath()));
-            return ResponseEntity.ok()
+            result = ResponseEntity.ok()
                     .contentLength(file.length())
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
                     .headers(httpHeaders -> httpHeaders.add(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString()))
@@ -87,6 +88,6 @@ public class MainServiceImp implements SparePartService {
                 log.error("Exception : " + e.getMessage() + "when deleting a file: " + file.getName() + " on server side");
             }
         }
-        return null;
+        return result;
     }
 }
