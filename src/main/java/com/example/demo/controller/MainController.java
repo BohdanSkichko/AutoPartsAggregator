@@ -14,7 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.io.IOException;
+import java.io.File;
+
 
 @Slf4j
 @RestController
@@ -53,6 +54,7 @@ public class MainController {
     private ResponseEntity<InputStreamResource> saveResultClientSide(@RequestParam String cost,
                                                                      @RequestParam String description,
                                                                      @RequestParam String url) {
-        return mainServiceImp.saveInfoClientSide(cost, description, url);
+        File file = mainServiceImp.createFile(cost,description,url);
+        return mainServiceImp.saveFileClientSide(file);
     }
 }

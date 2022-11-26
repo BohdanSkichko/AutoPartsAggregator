@@ -11,21 +11,19 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.*;
-import org.springframework.web.client.RestTemplate;
 
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 
 @ExtendWith(MockitoExtension.class)
 public class AvtoProServiceTest {
 
-    @Mock
-    private RestTemplate restTemplate;
     @InjectMocks
     private AvtoProServiceImp avtoProServiceImp;
 
@@ -34,35 +32,18 @@ public class AvtoProServiceTest {
         List<SparePart> parts = Mockito.spy(new ArrayList<>());
         SparePart sparePart = new SparePart("url", 100, "2002 part");
         SparePart sparePart1 = new SparePart("url", 12, "2001 part2");
+        Response response = Mockito.mock(Response.class);
+        response.setSparePartList(parts);
         parts.add(sparePart);
         parts.add(sparePart1);
+        when(response.getSparePartList()).thenReturn(parts);
+        assertEquals(response.getSparePartList(),parts);
+        verify(response).getSparePartList();
         Mockito.verify(parts).add(sparePart);
         Mockito.verify(parts).add(sparePart1);
         assertEquals(2, parts.size());
     }
 
-
-    public void restTemplateCallRemoteHost() {
-
-        ResponseEntity<String> responseEntity = new ResponseEntity<>("sampleBodyString", HttpStatus.ACCEPTED);
-        Mockito.when(restTemplate.exchange(ArgumentMatchers.anyString(),
-                        ArgumentMatchers.any(HttpMethod.class),
-                        ArgumentMatchers.any(),
-                        ArgumentMatchers.<Class<String>>any()))
-                .thenReturn(responseEntity);
-
-        HttpEntity<String> result = avtoProServiceImp.callRemoteHost("as");
-
-        assertEquals(result, responseEntity);
-
-        Mockito.verify(restTemplate, times(1)).exchange(
-                ArgumentMatchers.anyString(),
-                ArgumentMatchers.any(HttpMethod.class),
-                ArgumentMatchers.any(HttpEntity.class),
-                ArgumentMatchers.<Class<String>>any());
-
-
-    }
 
     @Test
     public void extractDate() throws JsonProcessingException {
@@ -236,7 +217,7 @@ public class AvtoProServiceTest {
         Response responseExtractNode = new Response();
         avtoProServiceImp.extractJsonNode(responseExtractNode, jsonNode);
 
-        Response responseGetResponseHttpEntity = avtoProServiceImp.getResponseFromHttpEntity(node);
+        Response responseGetResponseHttpEntity = avtoProServiceImp.getResponseFromHttpEntity(node,"Suggestions");
 
         assertEquals(response, responseExtractNode);
         assertEquals(response, responseGetResponseHttpEntity);
