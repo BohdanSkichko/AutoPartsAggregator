@@ -6,6 +6,7 @@ import com.example.demo.exeptionhendler.BusinessException;
 import com.example.demo.helper.PropertiesReader;
 import com.example.demo.service.SparePartService;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -26,6 +27,7 @@ import java.util.concurrent.Executor;
 @Service
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode
 public class UkrPartsServiceImp implements SparePartService {
     @Autowired
     private Executor executor;

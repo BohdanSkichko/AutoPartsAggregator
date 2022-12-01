@@ -10,6 +10,6 @@ import lombok.*;
 @Data
 public class SparePart {
     private String url;
-    private int cost;
+    private double cost;
     private String description;
 }

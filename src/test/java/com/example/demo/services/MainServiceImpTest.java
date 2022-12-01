@@ -42,12 +42,12 @@ public class MainServiceImpTest {
 
         SparePart first = new SparePart();
         first.setUrl("Url");
-        first.setCost(0);
+        first.setCost("0");
         first.setDescription("Name");
 
         SparePart second = new SparePart();
         second.setUrl("Url");
-        second.setCost(0);
+        second.setCost("0");
         second.setDescription("Description");
 
         responseAvtopro.getSparePartList().add(first);

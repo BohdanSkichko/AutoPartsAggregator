@@ -6,6 +6,7 @@ import com.example.demo.exeptionhendler.BusinessException;
 import com.example.demo.helper.PropertiesReader;
 import com.example.demo.service.SparePartService;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -27,7 +28,7 @@ import java.util.concurrent.Executor;
 @Service
 @AllArgsConstructor
 @NoArgsConstructor
-
+@EqualsAndHashCode
 public class AvtoPlusServiceImp implements SparePartService {
     @Autowired
     private Executor executor;
@@ -84,12 +85,13 @@ public class AvtoPlusServiceImp implements SparePartService {
     private void getSparePartOnPageAvtoPlus(Response response, String serialNumber, int page) {
         CompletableFuture.supplyAsync(() -> {
             try {
+                logger.info("find spare parts ------ " + Thread.currentThread().getName());
                 Document document = getDocument(serialNumber, page);
                 List<Element> listElementInside = new ArrayList<>(document.
                         getElementsByClass(PropertiesReader.getProperties("product-card--categoryPage")));
                 for (Element e : listElementInside) {
                     Elements elements = e.getElementsByTag(PropertiesReader.getProperties("a"));
-                    processPage(response, e, elements);
+                    processPage(response, e ,elements);
                 }
                 return response;
             } catch (Exception e) {

@@ -1,15 +1,13 @@
 package com.example.demo.entity;
 
 import lombok.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 
 @Getter
 @Setter
 @ToString
 @EqualsAndHashCode
-
 @RequiredArgsConstructor
 @AllArgsConstructor
 @Data

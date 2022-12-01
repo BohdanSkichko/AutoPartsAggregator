@@ -19,7 +19,11 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 
 @Service
 @AllArgsConstructor
@@ -36,10 +40,17 @@ public class MainServiceImp implements SparePartService {
     @Autowired
     private ExistUaImp existUaImp;
 
+    @Autowired
+    private Avtozapchasti avtozapchasti;
+    @Autowired
+    private DemexUaImp demexUaImp;
+    @Autowired
+    private Executor executor;
+
     @Override
     public Response searchSparePartBySerialNumber(String serialNumber) {
-        List<Response> listResponse = interrogateRemoteHosts(serialNumber);
         Response result = new Response();
+        List<Response> listResponse = interrogateRemoteHosts(serialNumber);
         for (Response response : listResponse) {
             result.getSparePartList().addAll(response.getSparePartList());
         }
@@ -52,6 +63,8 @@ public class MainServiceImp implements SparePartService {
         servicesToCall.add(avtoProServiceImp);
         servicesToCall.add(ukrPartsServiceImp);
         servicesToCall.add(existUaImp);
+        servicesToCall.add(demexUaImp);
+        servicesToCall.add(avtozapchasti);
         List<Response> responses = new ArrayList<>();
         for (SparePartService sparePartService : servicesToCall) {
             try {
@@ -103,7 +116,7 @@ public class MainServiceImp implements SparePartService {
             fileWriter.write(PropertiesReader.getProperties("Url") + url + "\n");
             fileWriter.close();
         } catch (IOException e) {
-            log.error("MainServiceImp throw Exception " +  e.getMessage() + " when trying create file: " + fileName.trim());
+            log.error("MainServiceImp throw Exception " + e.getMessage() + " when trying create file: " + fileName.trim());
         }
         return file;
     }
