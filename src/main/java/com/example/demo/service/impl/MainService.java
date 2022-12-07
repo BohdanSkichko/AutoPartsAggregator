@@ -3,7 +3,6 @@ package com.example.demo.service.impl;
 import com.example.demo.entity.Response;
 import com.example.demo.helper.PropertiesReader;
 import com.example.demo.service.SparePartService;
-import com.sun.xml.internal.messaging.saaj.packaging.mime.internet.MimeBodyPart;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -13,16 +12,11 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 
 @Service
@@ -30,20 +24,19 @@ import java.util.concurrent.Executor;
 @NoArgsConstructor
 @Slf4j
 @EqualsAndHashCode
-public class MainServiceImp implements SparePartService {
+public class MainService implements SparePartService {
     @Autowired
-    private AvtoProServiceImp avtoProServiceImp;
+    private AvtoProService avtoProService;
     @Autowired
-    private AvtoPlusServiceImp avtoPlusServiceImp;
+    private AvtoPlusService avtoPlusService;
     @Autowired
-    private UkrPartsServiceImp ukrPartsServiceImp;
+    private UkrPartsService ukrPartsService;
     @Autowired
-    private ExistUaImp existUaImp;
-
+    private ExistUaService existUaService;
     @Autowired
-    private Avtozapchasti avtozapchasti;
+    private AvtozapchastiService avtozapchastiService;
     @Autowired
-    private DemexUaImp demexUaImp;
+    private DemexUaService demexUaService;
     @Autowired
     private Executor executor;
 
@@ -59,12 +52,12 @@ public class MainServiceImp implements SparePartService {
 
     private List<Response> interrogateRemoteHosts(String serialNumber) {
         List<SparePartService> servicesToCall = new ArrayList<>();
-        servicesToCall.add(avtoPlusServiceImp);
-        servicesToCall.add(avtoProServiceImp);
-        servicesToCall.add(ukrPartsServiceImp);
-        servicesToCall.add(existUaImp);
-        servicesToCall.add(demexUaImp);
-        servicesToCall.add(avtozapchasti);
+        servicesToCall.add(avtoPlusService);
+        servicesToCall.add(avtoProService);
+        servicesToCall.add(ukrPartsService);
+        servicesToCall.add(existUaService);
+        servicesToCall.add(demexUaService);
+        servicesToCall.add(avtozapchastiService);
         List<Response> responses = new ArrayList<>();
         for (SparePartService sparePartService : servicesToCall) {
             try {
@@ -84,12 +77,11 @@ public class MainServiceImp implements SparePartService {
 
     public ResponseEntity<InputStreamResource> saveFileClientSide(File file) {
         ResponseEntity<InputStreamResource> result = null;
-        ContentDisposition contentDisposition = ContentDisposition.builder(MimeBodyPart.ATTACHMENT)
+        ContentDisposition contentDisposition = ContentDisposition.builder("ATTACHMENT")
                 .filename(file.getName(), StandardCharsets.UTF_8)
                 .build();
         try {
             result = ResponseEntity.ok()
-                    .contentLength(file.length())
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
                     .headers(httpHeaders -> httpHeaders.add(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString()))
                     .body(getResource(file));

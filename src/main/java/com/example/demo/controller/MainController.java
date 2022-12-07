@@ -1,7 +1,9 @@
 package com.example.demo.controller;
 
+import com.example.demo.entity.Response;
 import com.example.demo.entity.SerialNumber;
-import com.example.demo.service.impl.MainServiceImp;
+import com.example.demo.entity.SparePart;
+import com.example.demo.service.impl.MainService;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.io.File;
+import java.util.List;
 
 
 @Slf4j
@@ -24,7 +27,7 @@ import java.io.File;
 public class MainController {
 
     @Autowired
-    private final MainServiceImp mainServiceImp;
+    private final MainService mainService;
 
     @GetMapping(value = "/search")
     @ApiOperation(value = "Get price and reference",
@@ -38,7 +41,9 @@ public class MainController {
     })
     public ModelAndView getSparePartBySerialNumber(@ModelAttribute("serialNumber") String serialNumber) {
         ModelAndView result = new ModelAndView("spare-part");
-        result.addObject("spare", mainServiceImp.searchSparePartBySerialNumber(serialNumber).getSparePartList());
+        Response response = mainService.searchSparePartBySerialNumber(serialNumber);
+        result.addObject("spare", response.getSparePartList());
+        result.addObject("response", response);
         return result;
     }
 
@@ -54,7 +59,15 @@ public class MainController {
     private ResponseEntity<InputStreamResource> saveResultClientSide(@RequestParam String cost,
                                                                      @RequestParam String description,
                                                                      @RequestParam String url) {
-        File file = mainServiceImp.createFile(cost,description,url);
-        return mainServiceImp.saveFileClientSide(file);
+        File file = mainService.createFile(cost, description, url);
+        return mainService.saveFileClientSide(file);
+    }
+
+    @GetMapping(path = "saveToExel")
+    private ResponseEntity<InputStreamResource> saveResultClientSideExel(@RequestParam("response") List<SparePart> sparePartList) {
+     sparePartList.size();
+     SparePart sparePart = sparePartList.get(0);
+     SparePart sparePart1 = sparePartList.get(1);
+        return null;
     }
 }

@@ -3,8 +3,10 @@ package com.example.demo.service.impl;
 import com.example.demo.entity.Response;
 import com.example.demo.entity.SparePart;
 import com.example.demo.exeptionhendler.BusinessException;
+import com.example.demo.helper.PathHolder;
 import com.example.demo.helper.PropertiesReader;
 import com.example.demo.service.SparePartService;
+import io.swagger.models.Path;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -16,8 +18,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -29,14 +35,17 @@ import java.util.concurrent.Executor;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
-public class AvtoPlusServiceImp implements SparePartService {
+public class AvtoPlusService implements SparePartService {
     @Autowired
     private Executor executor;
+    private static final String APPLICATION = "Application";
+    @Autowired
+    private RestTemplate restTemplate;
     @Value("#{${pages}}")
     private int pages;
     @Value("#{'${website.urls}'.split(',')}")
     private List<String> urls;
-    private final Logger logger = LoggerFactory.getLogger(AvtoPlusServiceImp.class);
+    private final Logger logger = LoggerFactory.getLogger(AvtoPlusService.class);
 
     @Override
     public Response searchSparePartBySerialNumber(String serialNumber) {
@@ -85,20 +94,24 @@ public class AvtoPlusServiceImp implements SparePartService {
     private void getSparePartOnPageAvtoPlus(Response response, String serialNumber, int page) {
         CompletableFuture.supplyAsync(() -> {
             try {
-                logger.info("find spare parts ------ " + Thread.currentThread().getName());
-                Document document = getDocument(serialNumber, page);
+                String urlCost = getUrl() + page + PropertiesReader.getProperties("/?search") + serialNumber;
+                HttpHeaders headers = new HttpHeaders();
+                headers.add(HttpHeaders.USER_AGENT, APPLICATION);
+                HttpEntity<String> entity = new HttpEntity<>(headers);
+                HttpEntity<String> body = restTemplate.exchange(urlCost, HttpMethod.GET, entity, String.class);
+                Document document = Jsoup.parse(body.getBody());
                 List<Element> listElementInside = new ArrayList<>(document.
                         getElementsByClass(PropertiesReader.getProperties("product-card--categoryPage")));
                 for (Element e : listElementInside) {
                     Elements elements = e.getElementsByTag(PropertiesReader.getProperties("a"));
                     processPage(response, e ,elements);
                 }
-                return response;
             } catch (Exception e) {
                 e.printStackTrace();
                 throw new BusinessException(PropertiesReader.getProperties("avtoPlusEx"),
                         e.getMessage(), e);
             }
+            return response;
         }, executor);
     }
 

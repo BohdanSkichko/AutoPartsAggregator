@@ -1,10 +1,8 @@
-package com.example.demo.service.impl;
+package com.example.demo.helper;
 
 import com.example.demo.entity.Response;
 import com.example.demo.entity.SparePart;
 import com.example.demo.exeptionhendler.BusinessException;
-import com.example.demo.helper.PropertiesReader;
-import com.example.demo.service.SparePartService;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
@@ -16,71 +14,74 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
-@Service
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
 @Slf4j
 @Getter
 @Setter
-public class DemexUaImp implements SparePartService {
+@Service
+public class SiteParser {
     @Autowired
     private Executor executor;
     @Value("#{'${website.urls}'.split(',')}")
     private List<String> urls;
-    private String description;
-    private String url;
-    private String UrlSearch = PropertiesReader.getProperties("DemexUa");
 
-    @Override
+    private String UrlSearch;
+
+
     public Response searchSparePartBySerialNumber(String serialNumber) {
-        Response response = new Response();
-        return callRemoteHost(serialNumber, response).join();
+        return callRemoteHost(serialNumber).join();
     }
 
-    private CompletableFuture<Response> callRemoteHost(String serialNumber, Response response) {
+    private CompletableFuture<Response> callRemoteHost(String serialNumber) {
         return CompletableFuture.supplyAsync(
                 () -> {
-                    log.info("find spare parts" + getClass().getName() + " " + Thread.currentThread().getName());
+                    log.info("find spare parts" + getClass().getTypeName() + " " + Thread.currentThread().getName());
                     try {
-                        extractDataFromDexUa(response, serialNumber);
+                        Response result = new Response();
+                        result.getSparePartList().addAll(extractData(serialNumber));
+                        return result;
                     } catch (BusinessException e) {
                         throw new RuntimeException(e);
                     }
-                    return response;
                 }, executor);
     }
 
-    private void extractDataFromDexUa(Response response, String serialNumber) {
+    private List<SparePart> extractData(String serialNumber) {
+        List<SparePart> sparePartList = new ArrayList<>();
         try {
             Document document = Jsoup.connect(getUrl() + serialNumber).get();
-            Element element = document.getElementsByClass(PropertiesReader.getProperties("dl-horizontal")).first();
-            extractFromElementList(response, element);
+            Element element = document.getElementsByClass(PropertiesReader.getProperties(PathHolder.DL.getPath())).first();
+            sparePartList.addAll(extractFromElementList(element));
         } catch (Exception e) {
             e.printStackTrace();
             throw new BusinessException(PropertiesReader.getProperties("ukrPartsEx"),
                     "Exception occurred in extractDataFromUkrparts: " + e.getMessage(), e);
         }
+        return sparePartList;
     }
 
-    private void extractFromElementList(Response response, Element element) {
+    private List<SparePart> extractFromElementList(Element element) {
+        List<SparePart> sparePartList = new ArrayList<>();
         try {
-            Elements elementsName = element.getElementsByTag("a");
-            Elements elementsDescription = element.getElementsByTag(PropertiesReader.getProperties("strong"));
+            Elements elementsName = element.getElementsByTag(PathHolder.A.getPath());
+            Elements elementsDescription = element.getElementsByTag(PropertiesReader.getProperties(PathHolder.STRONG.getPath()));
             int elementDescription = 0;
             for (int i = 0; i < elementsName.size() - 1; i += 2) {
-                url = elementsName.get(i).attr("href");
-                description = elementsDescription.get(elementDescription).text();
+                String url = elementsName.get(i).attr(PathHolder.HREF.getPath());
+                String description = elementsDescription.get(elementDescription).text();
                 elementDescription++;
                 if (StringUtils.hasText(description)) {
                     SparePart sparePart = new SparePart();
                     sparePart.setDescription(description);
                     sparePart.setUrl(url);
-                    response.getSparePartList().add(sparePart);
+                    sparePartList.add(sparePart);
                 }
             }
         } catch (Exception e) {
@@ -88,9 +89,10 @@ public class DemexUaImp implements SparePartService {
             throw new BusinessException(PropertiesReader.getProperties("ukrPartsEx"),
                     "extractFromElementList" + e.getMessage(), e);
         }
+        return sparePartList;
     }
 
     private String getUrl() {
-        return urls.stream().filter(a -> a.contains(UrlSearch)).findFirst().get();
+        return urls.stream().filter(urls -> urls.contains(UrlSearch)).findFirst().get();
     }
 }

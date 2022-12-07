@@ -3,8 +3,9 @@ package com.example.demo.service.impl;
 import com.example.demo.entity.Response;
 import com.example.demo.entity.SparePart;
 import com.example.demo.exeptionhendler.BusinessException;
+import com.example.demo.helper.PathHolder;
 import com.example.demo.helper.PropertiesReader;
-import com.example.demo.helper.StringHttpEntity;
+import com.example.demo.helper.StringHttpWorker;
 import com.example.demo.service.SparePartService;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.AllArgsConstructor;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +32,7 @@ import java.util.concurrent.Executor;
 @NoArgsConstructor
 @Slf4j
 @EqualsAndHashCode
-public class ExistUaImp implements SparePartService, StringHttpEntity {
+public class ExistUaService implements SparePartService, StringHttpWorker {
     @Autowired
     private RestTemplate restTemplate;
     @Autowired
@@ -40,26 +42,29 @@ public class ExistUaImp implements SparePartService, StringHttpEntity {
     @Value("#{'${website.urls}'.split(',')}")
     private List<String> urls;
 
+    private static final String APPLICATION = "Application";
+
     @Override
     public Response searchSparePartBySerialNumber(String serialNumber) {
         HttpEntity<String> response = callRemoteHost(serialNumber);
-        return getResponseFromHttpEntity(response, PropertiesReader.getProperties("multipleResults"),
+        return getResponseFromHttpEntity(response, PropertiesReader.getProperties(PathHolder.MULTIPLE_RESULTS.getPath()),
                 executor).join();
     }
 
     @Override
-    public void extractJsonNode(Response result, JsonNode arrayNode) {
+    public List<SparePart> extractJsonNode(JsonNode arrayNode) {
+        List<SparePart> sparePartList = new ArrayList<>();
         try {
             for (JsonNode node : arrayNode) {
                 SparePart sparePart = new SparePart();
-                if (!node.path(PropertiesReader.getProperties("prag_id")).asText().equals("null")) {
-                    sparePart.setUrl(PropertiesReader.getProperties("exist.ua/search/?product_id") +
-                            node.path(PropertiesReader.getProperties("prag_id")).asText());
-                    sparePart.setDescription(node.path(PropertiesReader.getProperties("description")).asText() +
-                            node.path(PropertiesReader.getProperties("trademark_description")).asText() +
-                            PropertiesReader.getProperties("SpareList"));
-                    result.getSparePartList().add(sparePart);
-                    if (result.getSparePartList().size() == pages) {
+                if (!node.path(PropertiesReader.getProperties(PathHolder.PRAG.getPath())).asText().equals("null")) {
+                    sparePart.setUrl(PropertiesReader.getProperties(PathHolder.EXISTUA.getPath()) +
+                            node.path(PropertiesReader.getProperties(PathHolder.PRAG.getPath())).asText());
+                    sparePart.setDescription(node.path(PropertiesReader.getProperties(PathHolder.DESCRIPTION.getPath())).asText() +
+                                    PropertiesReader.getProperties(PathHolder.WHITE_SPACE.getPath())+
+                            node.path(PropertiesReader.getProperties(PathHolder.TRADEMARK.getPath())).asText());
+                    sparePartList.add(sparePart);
+                    if (sparePartList.size() == pages) {
                         break;
                     }
                 }
@@ -69,13 +74,14 @@ public class ExistUaImp implements SparePartService, StringHttpEntity {
             throw new BusinessException(PropertiesReader.getProperties("existUA"),
                     "Exception occurred in extractJsonNode(): " + e.getMessage(), e);
         }
+        return sparePartList;
     }
 
     @Override
     public HttpEntity<String> callRemoteHost(String serialNumber) {
 
         HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.USER_AGENT, "Application");
+        headers.add(HttpHeaders.USER_AGENT, APPLICATION);
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         String ureRequest = UriComponentsBuilder.fromHttpUrl(getUrl())

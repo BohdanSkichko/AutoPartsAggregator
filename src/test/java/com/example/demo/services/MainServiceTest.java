@@ -3,10 +3,10 @@ package com.example.demo.services;
 import com.example.demo.entity.Response;
 import com.example.demo.entity.SparePart;
 import com.example.demo.service.SparePartService;
-import com.example.demo.service.impl.AvtoPlusServiceImp;
-import com.example.demo.service.impl.AvtoProServiceImp;
-import com.example.demo.service.impl.MainServiceImp;
-import com.example.demo.service.impl.UkrPartsServiceImp;
+import com.example.demo.service.impl.AvtoPlusService;
+import com.example.demo.service.impl.AvtoProService;
+import com.example.demo.service.impl.MainService;
+import com.example.demo.service.impl.UkrPartsService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,19 +20,16 @@ import java.io.File;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class MainServiceImpTest {
-
+public class MainServiceTest {
     @Spy
     @InjectMocks
-    private SparePartService sparePartService = new MainServiceImp();
-
-
+    private SparePartService sparePartService = new MainService();
     @Mock
-    private AvtoProServiceImp avtoProServiceImp;
+    private AvtoProService avtoProService;
     @Mock
-    private AvtoPlusServiceImp avtoPlusServiceImp;
+    private AvtoPlusService avtoPlusService;
     @Mock
-    private UkrPartsServiceImp ukrPartsServiceImp;
+    private UkrPartsService ukrPartsService;
 
 
     @Test
@@ -42,12 +39,12 @@ public class MainServiceImpTest {
 
         SparePart first = new SparePart();
         first.setUrl("Url");
-        first.setCost("0");
+        first.setCost(0.0);
         first.setDescription("Name");
 
         SparePart second = new SparePart();
         second.setUrl("Url");
-        second.setCost("0");
+        second.setCost(0.0);
         second.setDescription("Description");
 
         responseAvtopro.getSparePartList().add(first);
@@ -64,19 +61,19 @@ public class MainServiceImpTest {
         mainResponse.getSparePartList().addAll(responseAvtopro.getSparePartList());
         mainResponse.getSparePartList().addAll(responseUkrParts.getSparePartList());
 
-        when(avtoProServiceImp.searchSparePartBySerialNumber(serialNumber)).thenReturn(responseAvtopro);
-        when(ukrPartsServiceImp.searchSparePartBySerialNumber(serialNumber)).thenReturn(responseUkrParts);
-        when(avtoPlusServiceImp.searchSparePartBySerialNumber(serialNumber)).thenReturn(responseAvtoPlus);
+        when(avtoProService.searchSparePartBySerialNumber(serialNumber)).thenReturn(responseAvtopro);
+        when(ukrPartsService.searchSparePartBySerialNumber(serialNumber)).thenReturn(responseUkrParts);
+        when(avtoPlusService.searchSparePartBySerialNumber(serialNumber)).thenReturn(responseAvtoPlus);
 
-        Assertions.assertEquals(avtoProServiceImp.searchSparePartBySerialNumber(serialNumber), responseAvtopro);
-        Assertions.assertEquals(ukrPartsServiceImp.searchSparePartBySerialNumber(serialNumber), responseUkrParts);
-        Assertions.assertEquals(avtoPlusServiceImp.searchSparePartBySerialNumber(serialNumber), responseAvtoPlus);
+        Assertions.assertEquals(avtoProService.searchSparePartBySerialNumber(serialNumber), responseAvtopro);
+        Assertions.assertEquals(ukrPartsService.searchSparePartBySerialNumber(serialNumber), responseUkrParts);
+        Assertions.assertEquals(avtoPlusService.searchSparePartBySerialNumber(serialNumber), responseAvtoPlus);
 
         Assertions.assertEquals(sparePartService.searchSparePartBySerialNumber(serialNumber), mainResponse);
 
-        Mockito.verify(avtoProServiceImp, times(2)).searchSparePartBySerialNumber(serialNumber);
-        Mockito.verify(ukrPartsServiceImp, times(2)).searchSparePartBySerialNumber(serialNumber);
-        Mockito.verify(avtoPlusServiceImp, times(2)).searchSparePartBySerialNumber(serialNumber);
+        Mockito.verify(avtoProService, times(2)).searchSparePartBySerialNumber(serialNumber);
+        Mockito.verify(ukrPartsService, times(2)).searchSparePartBySerialNumber(serialNumber);
+        Mockito.verify(avtoPlusService, times(2)).searchSparePartBySerialNumber(serialNumber);
 
         Mockito.verify(sparePartService, times(1)).searchSparePartBySerialNumber(serialNumber);
 
@@ -85,11 +82,11 @@ public class MainServiceImpTest {
     @Test
     public void returnResponseInputStreamResourceWhenSaveInfo() {
 
-        MainServiceImp spyMainService = Mockito.spy(MainServiceImp.class);
+        MainService spyMainService = Mockito.spy(MainService.class);
 
         File file = spyMainService.createFile("cost", "Name", "test");
 
-        MainServiceImp mockMainService = Mockito.mock(MainServiceImp.class);
+        MainService mockMainService = Mockito.mock(MainService.class);
 
         when(mockMainService.createFile(anyString(), anyString(), anyString())).thenReturn(file);
         mockMainService.createFile("as", "as", "test");

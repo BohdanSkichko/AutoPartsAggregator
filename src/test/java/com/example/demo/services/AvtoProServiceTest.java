@@ -2,7 +2,7 @@ package com.example.demo.services;
 
 import com.example.demo.entity.Response;
 import com.example.demo.entity.SparePart;
-import com.example.demo.service.impl.AvtoProServiceImp;
+import com.example.demo.service.impl.AvtoProService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,9 +15,7 @@ import org.springframework.web.client.RestTemplate;
 
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.Executor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -41,7 +39,7 @@ public class AvtoProServiceTest {
     private List<String> strings;
 
     @Spy
-    AvtoProServiceImp avtoProServiceImp = new AvtoProServiceImp(restTemplate, executor, 10, strings);
+    AvtoProService avtoProService = new AvtoProService(restTemplate, executor, 10, strings);
 
     @Test
     public void getListSparePart() {
@@ -217,11 +215,11 @@ public class AvtoProServiceTest {
         SparePart first = new SparePart();
         first.setUrl("https://avto.pro//system/search/result/.aspx?sId=20221116202341-6a5d4861-8c6d-456b-a7e1-2a8e808f81c5&seqId=0&sInd=0&uri=%2Fpart-20-AC_DELCO-435%2F&queryId=20221116213327-81b1930b-6cad-4f88-8a49-4985ecf35cbd&selectSuggest=AC%20Delco%2020");
         first.setCost(0);
-        first.setDescription("AC Delco 20 Spare part list ");
+        first.setDescription("AC Delco 20");
         SparePart second = new SparePart();
         second.setUrl("https://avto.pro//system/search/result/.aspx?sId=20221116202341-6a5d4861-8c6d-456b-a7e1-2a8e808f81c5&seqId=0&sInd=71&uri=%2Fzapchasti-20-%D0%A8%D0%9B%D0%90%D0%9D%D0%93_%D0%9D%D0%90_%D0%9F%D0%9E%D0%94%D0%9E%D0%93%D0%A0%D0%95%D0%92%2F&queryId=20221116213327-81b1930b-6cad-4f88-8a49-4985ecf35cbd&selectSuggest=%D0%A8%D0%9B%D0%90%D0%9D%D0%93%20%D0%9D%D0%90%20%D0%9F%D0%9E%D0%94%D0%9E%D0%93%D0%A0%D0%95%D0%92%2020");
         second.setCost(0);
-        second.setDescription("ШЛАНГ НА ПОДОГРЕВ 20 Spare part list ");
+        second.setDescription("ШЛАНГ НА ПОДОГРЕВ 20");
         response.getSparePartList().add(first);
         response.getSparePartList().add(second);
 
