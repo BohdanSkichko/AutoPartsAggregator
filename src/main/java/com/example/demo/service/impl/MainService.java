@@ -1,6 +1,7 @@
 package com.example.demo.service.impl;
 
 import com.example.demo.entity.Response;
+import com.example.demo.entity.SparePart;
 import com.example.demo.helper.PropertiesReader;
 import com.example.demo.service.SparePartService;
 import lombok.AllArgsConstructor;
@@ -16,8 +17,10 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.Executor;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -47,6 +50,10 @@ public class MainService implements SparePartService {
         for (Response response : listResponse) {
             result.getSparePartList().addAll(response.getSparePartList());
         }
+        List<SparePart> sorted = result.getSparePartList().stream()
+                .sorted(Comparator.comparingDouble(SparePart::getCost))
+                .collect(Collectors.toList());
+        result.setSparePartList(sorted);
         return result;
     }
 

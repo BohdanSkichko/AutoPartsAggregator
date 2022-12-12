@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 @ToString
 @EqualsAndHashCode
 
-@RequiredArgsConstructor
+@NoArgsConstructor
 @AllArgsConstructor
 @Data
 public class SparePart {

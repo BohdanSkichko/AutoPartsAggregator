@@ -3,26 +3,35 @@ package com.example.demo.controller;
 import com.example.demo.entity.Response;
 import com.example.demo.entity.SerialNumber;
 import com.example.demo.entity.SparePart;
+import com.example.demo.helper.UserExcelExporter;
 import com.example.demo.service.impl.MainService;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 
 @Slf4j
 @RestController
 @AllArgsConstructor
+@SessionAttributes("response")
 @RequestMapping(path = "/api")
 public class MainController {
 
@@ -63,11 +72,11 @@ public class MainController {
         return mainService.saveFileClientSide(file);
     }
 
-    @GetMapping(path = "saveToExel")
-    private ResponseEntity<InputStreamResource> saveResultClientSideExel(@RequestParam("response") List<SparePart> sparePartList) {
-     sparePartList.size();
-     SparePart sparePart = sparePartList.get(0);
-     SparePart sparePart1 = sparePartList.get(1);
-        return null;
+    @GetMapping(path = "saveToXlsx")
+    private ResponseEntity<InputStreamResource> saveResultClientSideExel(@ModelAttribute Response response) throws IOException {
+        List<SparePart> listSpareParts = response.getSparePartList();
+        UserExcelExporter excelExporter = new UserExcelExporter(listSpareParts);
+        File file = excelExporter.export();
+        return mainService.saveFileClientSide(file);
     }
 }

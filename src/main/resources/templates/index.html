@@ -14,22 +14,20 @@
 
 </head>
 <body>
+<style>
+    .outer {
+        text-align: center;
+    }
+</style>
 <div class="outer">
     <div class="container">
         <hr/>
         <h3>Search spare part</h3>
-
-
         <form th:action="@{search}" th:object="${serialNumber}" method="GET">
-
                 <input type="text" th:field="*{serialNumber}" class="form-control col-12 mb-5"
                        placeholder="Enter Serial number"/>
-
             <button type="submit" class="btn btn-primary col-2" id="submit">Search</button>
-
         </form>
-
-
     </div>
     <script>
         $('#submit').click(function () {
@@ -37,20 +35,11 @@
         });
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.0/jquery.min.js"></script>
-
     <div id="load" style="display:none">
-        <style>
-            .outer {
-                text-align: center;
-            }
-        </style>
-
         Please wait... Searching...
         <hr/>
         <img src="//s.svgbox.net/loaders.svg?fill=maroon&ic=tail-spin"
-
              style="width:100px">
-
     </div>
 </div>
 </body>
