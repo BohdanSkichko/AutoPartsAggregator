@@ -1,7 +1,7 @@
 package com.example.demo.entity;
 
 import lombok.*;
-import org.springframework.web.bind.annotation.ModelAttribute;
+
 
 @Getter
 @Setter
@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
 public class SparePart {
     private String url;
     private double cost;

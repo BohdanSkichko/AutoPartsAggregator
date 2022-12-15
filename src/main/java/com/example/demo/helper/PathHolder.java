@@ -37,7 +37,10 @@ public enum PathHolder {
     COST("Cost"),
     URL("Url"),
     WHITE_SPACE("WhiteSpace"),
-
+    SPAN("span"),
+    COMA("coma"),
+    DOT("dot"),
+    MICRODATA("microdata"),
     ;
 
     private final String path;

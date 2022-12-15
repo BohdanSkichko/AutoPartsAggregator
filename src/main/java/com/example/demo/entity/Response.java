@@ -10,8 +10,6 @@ import java.util.*;
 @EqualsAndHashCode
 @RequiredArgsConstructor
 @AllArgsConstructor
-@Data
-
 public class Response {
     private List<SparePart> sparePartList = new ArrayList<>();
 }

@@ -1,6 +1,5 @@
 package com.example.demo.helper;
 
-import com.example.demo.entity.Response;
 import com.example.demo.entity.SparePart;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
@@ -10,9 +9,8 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+
+import java.io.*;
 import java.util.List;
 
 @Slf4j
@@ -22,15 +20,13 @@ import java.util.List;
 @EqualsAndHashCode
 @RequiredArgsConstructor
 @AllArgsConstructor
-@Data
 public class UserExcelExporter {
     private XSSFWorkbook workbook;
     private XSSFSheet sheet;
-    private List<SparePart> listUsers;
-    private final static String NAME = "Spare Parts.xlsx";
+    private List<SparePart> spareParts;
 
-    public UserExcelExporter(List<SparePart> list) {
-        this.listUsers = list;
+    public UserExcelExporter(List<SparePart> spareParts) {
+        this.spareParts = spareParts;
         workbook = new XSSFWorkbook();
     }
 
@@ -52,12 +48,9 @@ public class UserExcelExporter {
     }
 
     private void createCell(Row row, int columnCount, Object value, CellStyle style) {
-        sheet.autoSizeColumn(columnCount);
         Cell cell = row.createCell(columnCount);
         if (value instanceof Double) {
             cell.setCellValue((Double) value);
-        } else if (value instanceof Boolean) {
-            cell.setCellValue((Boolean) value);
         } else {
             cell.setCellValue((String) value);
         }
@@ -72,24 +65,25 @@ public class UserExcelExporter {
         font.setFontHeight(14);
         style.setFont(font);
 
-        for (SparePart sparePart : listUsers) {
-            Row row = sheet.createRow(rowCount++);
+        for (SparePart sparePart : spareParts) {
             int columnCount = 0;
-
+            Row row = sheet.createRow(rowCount++);
             createCell(row, columnCount++, sparePart.getCost(), style);
             createCell(row, columnCount++, sparePart.getDescription(), style);
             createCell(row, columnCount++, sparePart.getUrl(), style);
         }
+        sheet.autoSizeColumn(0);
+        sheet.autoSizeColumn(1);
+        sheet.autoSizeColumn(2);
     }
 
-    public File export() throws IOException {
+    public InputStream export() throws IOException {
         writeHeaderLine();
         writeDataLines();
-        File file = new File(NAME);
-        FileOutputStream outputStream = new FileOutputStream(file);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream(spareParts.toString().getBytes().length);
         workbook.write(outputStream);
         workbook.close();
-        outputStream.close();
-        return file;
+        byte[] bytes = outputStream.toByteArray();
+        return new ByteArrayInputStream(bytes);
     }
 }

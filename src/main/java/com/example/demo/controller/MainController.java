@@ -10,21 +10,17 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpRequest;
+import org.apache.commons.compress.utils.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.ModelAndView;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 
 
@@ -68,15 +64,12 @@ public class MainController {
     private ResponseEntity<InputStreamResource> saveResultClientSide(@RequestParam String cost,
                                                                      @RequestParam String description,
                                                                      @RequestParam String url) {
-        File file = mainService.createFile(cost, description, url);
-        return mainService.saveFileClientSide(file);
+        return mainService.saveFileClientSide(cost, description, url);
     }
 
     @GetMapping(path = "saveToXlsx")
-    private ResponseEntity<InputStreamResource> saveResultClientSideExel(@ModelAttribute Response response) throws IOException {
-        List<SparePart> listSpareParts = response.getSparePartList();
-        UserExcelExporter excelExporter = new UserExcelExporter(listSpareParts);
-        File file = excelExporter.export();
-        return mainService.saveFileClientSide(file);
+    private ResponseEntity<InputStreamResource> saveResultClientSideExel(@ModelAttribute Response response) {
+        log.debug("MainService saveResultClientSideExel() response param: " + response);
+        return mainService.saveDataToExelClientSide(response.getSparePartList());
     }
 }

@@ -24,36 +24,54 @@ import java.util.concurrent.Executor;
 @Getter
 @Setter
 @Component
-public class FetchCost {
+public class CostFetcher {
 
     private final static String APPLICATION = "Application";
-    private final static String COMA = ",";
-    private final static String DOT = ".";
     @Autowired
     private RestTemplate restTemplate;
     @Autowired
     private Executor executor;
-
     private String getByClass;
     private List<SparePart> sparePartList;
 
-    public void fetchCost(int number) {
+
+    public void getCost(int number) {
         CompletableFuture.supplyAsync(() -> {
-            String urlCost = sparePartList.get(number).getUrl();
-            HttpHeaders headers = new HttpHeaders();
-            headers.add(HttpHeaders.USER_AGENT, APPLICATION);
-            HttpEntity<String> entity = new HttpEntity<>(headers);
-            HttpEntity<String> response = restTemplate.exchange(urlCost, HttpMethod.GET, entity, String.class);
-            Document document = Jsoup.parse(response.getBody());
-            Element element = document.getElementsByClass(getByClass).first();
+            Element element = getElementRemoteHost(number);
             if (element != null) {
                 String cost = element.text()
                         .replaceAll(PropertiesReader.getProperties(PathHolder.REPLACE_TEXT.getPath()), "")
-                        .replaceAll(COMA, DOT);
+                        .replaceAll(PropertiesReader.getProperties(PathHolder.COMA.getPath()),
+                                PropertiesReader.getProperties(PathHolder.DOT.getPath()));
                 sparePartList.get(number).setCost(Double.parseDouble(cost));
             }
             log.debug("AvtoProService fetchCost() result: " + sparePartList);
             return sparePartList;
         }, executor);
+    }
+
+    public void getCost(int number, String getByTag) {
+        CompletableFuture.supplyAsync(() -> {
+            Element element = getElementRemoteHost(number);
+            if (element != null) {
+                String cost = element.getElementsByTag(getByTag).first().text()
+                        .replaceAll(PropertiesReader.getProperties(PathHolder.COMA.getPath()),
+                                PropertiesReader.getProperties(PathHolder.DOT.getPath()))
+                        .replaceAll(PropertiesReader.getProperties(PathHolder.WHITE_SPACE.getPath()), "").trim();
+                sparePartList.get(number).setCost(Double.parseDouble(cost));
+            }
+            log.debug("AvtoProService fetchCost() result: " + sparePartList);
+            return sparePartList;
+        }, executor);
+    }
+
+    private Element getElementRemoteHost(int number) {
+        String url = sparePartList.get(number).getUrl();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.USER_AGENT, APPLICATION);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        HttpEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+        Document document = Jsoup.parse(response.getBody());
+        return document.getElementsByClass(getByClass).first();
     }
 }

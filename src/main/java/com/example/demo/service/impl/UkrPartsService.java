@@ -82,7 +82,7 @@ public class UkrPartsService implements SparePartService {
                         getElementsByClass(PropertiesReader.getProperties(PathHolder.PRICE_MIN.getPath()));
                 String text = elementPrice.text();
                 String cost = text.replaceAll(PropertiesReader.getProperties(PathHolder.REPLACE_TEXT.getPath()), "");
-                if (cost.isEmpty()) {
+                if (!cost.isEmpty()) {
                     break;
                 }
                 sparePart.setCost(Integer.parseInt(cost));

@@ -9,7 +9,6 @@ import lombok.*;
 
 @RequiredArgsConstructor
 @AllArgsConstructor
-@Data
 public class SerialNumber {
     private String serialNumber;
 }

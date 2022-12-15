@@ -3,6 +3,7 @@ package com.example.demo.service.impl;
 import com.example.demo.entity.Response;
 import com.example.demo.entity.SparePart;
 import com.example.demo.exeptionhendler.BusinessException;
+import com.example.demo.helper.CostFetcher;
 import com.example.demo.helper.PathHolder;
 import com.example.demo.helper.PropertiesReader;
 import com.example.demo.helper.StringHttpWorker;
@@ -25,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 @Service
@@ -41,8 +43,11 @@ public class ExistUaService implements SparePartService, StringHttpWorker {
     private int pages;
     @Value("#{'${website.urls}'.split(',')}")
     private List<String> urls;
+    final static String GET_BY_TAG = "span";
 
     private static final String APPLICATION = "Application";
+
+    private final static String GET_BY_CLASS = "SearchResultsGridstyle__SearchResultsPrice-sc-1ibh0zg-15";
 
     @Override
     public Response searchSparePartBySerialNumber(String serialNumber) {
@@ -61,11 +66,15 @@ public class ExistUaService implements SparePartService, StringHttpWorker {
                     sparePart.setUrl(PropertiesReader.getProperties(PathHolder.EXISTUA.getPath()) +
                             node.path(PropertiesReader.getProperties(PathHolder.PRAG.getPath())).asText());
                     sparePart.setDescription(node.path(PropertiesReader.getProperties(PathHolder.DESCRIPTION.getPath())).asText() +
-                                    PropertiesReader.getProperties(PathHolder.WHITE_SPACE.getPath())+
+                            PropertiesReader.getProperties(PathHolder.WHITE_SPACE.getPath()) +
                             node.path(PropertiesReader.getProperties(PathHolder.TRADEMARK.getPath())).asText());
                     sparePartList.add(sparePart);
                     if (sparePartList.size() == pages) {
                         break;
+                    }
+                    CostFetcher costFetcher = new CostFetcher(restTemplate, executor, GET_BY_CLASS, sparePartList);
+                    for (int i = 0; i < sparePartList.size(); i++) {
+                        costFetcher.getCost(i, GET_BY_TAG);
                     }
                 }
             }
@@ -94,6 +103,7 @@ public class ExistUaService implements SparePartService, StringHttpWorker {
 
         return restTemplate.exchange(ureRequest, HttpMethod.GET, entity, String.class, params);
     }
+
 
     private String getUrl() {
         return urls.stream()

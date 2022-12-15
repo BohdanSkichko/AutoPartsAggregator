@@ -78,29 +78,4 @@ public class MainServiceTest {
         Mockito.verify(sparePartService, times(1)).searchSparePartBySerialNumber(serialNumber);
 
     }
-
-    @Test
-    public void returnResponseInputStreamResourceWhenSaveInfo() {
-
-        MainService spyMainService = Mockito.spy(MainService.class);
-
-        File file = spyMainService.createFile("cost", "Name", "test");
-
-        MainService mockMainService = Mockito.mock(MainService.class);
-
-        when(mockMainService.createFile(anyString(), anyString(), anyString())).thenReturn(file);
-        mockMainService.createFile("as", "as", "test");
-        verify(mockMainService).createFile(anyString(), anyString(), eq("test"));
-        verify(mockMainService, times(1)).createFile(any(), anyString(), anyString());
-
-        ResponseEntity<InputStreamResource> response = spyMainService.saveFileClientSide(file);
-
-
-        when(mockMainService.saveFileClientSide(any(File.class))).thenReturn(response);
-        mockMainService.saveFileClientSide(file);
-        verify(mockMainService).saveFileClientSide(any(File.class));
-
-        Assertions.assertEquals(response, mockMainService.saveFileClientSide(file));
-        verify(mockMainService, times(2)).saveFileClientSide(any());
-    }
 }

@@ -6,14 +6,12 @@ import com.example.demo.exeptionhendler.BusinessException;
 import com.example.demo.helper.PathHolder;
 import com.example.demo.helper.PropertiesReader;
 import com.example.demo.service.SparePartService;
-import io.swagger.models.Path;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,7 +67,7 @@ public class AvtoPlusService implements SparePartService {
 
     private void extractDataAvtoPlus(Response response, String serialNumber) {
         int pagesQuantity = 1;
-        Document docWithPageQuantity = getDocument(serialNumber, pagesQuantity);
+        Document docWithPageQuantity = getDocumentFirstPage(serialNumber, pagesQuantity);
         pagesQuantity = getPagesQuantityInDocument(pagesQuantity, docWithPageQuantity);
         for (int numberPage = 1; numberPage <= pagesQuantity; numberPage++) {
             getSparePartOnPageAvtoPlus(response, serialNumber, numberPage);
@@ -78,12 +76,12 @@ public class AvtoPlusService implements SparePartService {
 
     private int getPagesQuantityInDocument(int pagesQuantity, Document docWithPageQuantity) {
         Element listPages = docWithPageQuantity.
-                getElementsByClass(PropertiesReader.getProperties("load-more-search")).first();
+                getElementsByClass(PropertiesReader.getProperties(PathHolder.LOAD_MORE.getPath())).first();
         if (listPages != null) {
             Element elementWithQuantityPages = listPages
-                    .getElementsByAttribute(PropertiesReader.getProperties("data-total")).first();
+                    .getElementsByAttribute(PropertiesReader.getProperties(PathHolder.DATA_TOTAL.getPath())).first();
             pagesQuantity = Integer.parseInt(elementWithQuantityPages
-                    .attr(PropertiesReader.getProperties("data-total")));
+                    .attr(PropertiesReader.getProperties(PathHolder.DATA_TOTAL.getPath())));
             if (pagesQuantity > pages) {
                 pagesQuantity = pages;
             }
@@ -94,17 +92,16 @@ public class AvtoPlusService implements SparePartService {
     private void getSparePartOnPageAvtoPlus(Response response, String serialNumber, int page) {
         CompletableFuture.supplyAsync(() -> {
             try {
-                String urlCost = getUrl() + page + PropertiesReader.getProperties("/?search") + serialNumber;
+                String urlCost = getUrl() + page + PropertiesReader.getProperties(PathHolder.SEARCH.getPath()) + serialNumber;
                 HttpHeaders headers = new HttpHeaders();
                 headers.add(HttpHeaders.USER_AGENT, APPLICATION);
                 HttpEntity<String> entity = new HttpEntity<>(headers);
                 HttpEntity<String> body = restTemplate.exchange(urlCost, HttpMethod.GET, entity, String.class);
                 Document document = Jsoup.parse(body.getBody());
                 List<Element> listElementInside = new ArrayList<>(document.
-                        getElementsByClass(PropertiesReader.getProperties("product-card--categoryPage")));
-                for (Element e : listElementInside) {
-                    Elements elements = e.getElementsByTag(PropertiesReader.getProperties("a"));
-                    processPage(response, e ,elements);
+                        getElementsByClass(PropertiesReader.getProperties(PathHolder.PRODUCT.getPath())));
+                for (Element element : listElementInside) {
+                    processPage(response, element);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -115,36 +112,32 @@ public class AvtoPlusService implements SparePartService {
         }, executor);
     }
 
-    private void processPage(Response response, Element e, Elements elements) {
+    private void processPage(Response response, Element element) {
         try {
-            boolean isFirst = true;
-            for (Element el : elements) {
-                SparePart sparePart = new SparePart();
-                if (StringUtils.hasText(PropertiesReader.getProperties("href"))) {
-                    if (isFirst) {
-                        isFirst = false;
-                        continue;
-                    }
-                    sparePart.setDescription(el.text());
-                    Elements elementsCost = e
-                            .getElementsByClass(PropertiesReader.getProperties("basket-button__uah"));
-                    String text = elementsCost.text();
-                    String cost = text.replaceAll(PropertiesReader.getProperties("ReplaceText"), "");
-                    sparePart.setCost(Integer.parseInt(cost));
-                    sparePart.setUrl(PropertiesReader.getProperties("UrlAvtoPlus") +
-                            el.attr(PropertiesReader.getProperties("href")));
-                    response.getSparePartList().add(sparePart);
-                    break;
-                }
+            Element elementWithItem = element.getElementsByTag(PropertiesReader.getProperties(PathHolder.A.getPath())).get(1);
+            SparePart sparePart = new SparePart();
+            if (StringUtils.hasText(elementWithItem.text())) {
+                sparePart.setDescription(elementWithItem.text());
+                String cost = element
+                        .getElementsByClass(PropertiesReader.getProperties(PathHolder.BUTTON_UAH.getPath()))
+                        .text()
+                        .replaceAll(PropertiesReader.getProperties(PathHolder.REPLACE_TEXT.getPath()), "");
+                sparePart.setCost(Integer.parseInt(cost));
+                sparePart.setUrl(PropertiesReader.getProperties(PathHolder.URL_AVTO_PLUS.getPath()) +
+                        elementWithItem.attr(PropertiesReader.getProperties(PathHolder.HREF.getPath())));
+                response.getSparePartList().add(sparePart);
             }
-        } catch (Exception ex) {
+        } catch (
+                Exception ex) {
             throw new BusinessException(PropertiesReader.getProperties("avtoPlusEx"), ex.getMessage(), ex);
         }
+
     }
 
-    private Document getDocument(String serialNumber, int page) {
+    private Document getDocumentFirstPage(String serialNumber, int page) {
         try {
-            return Jsoup.connect(getUrl() + page + PropertiesReader.getProperties("/?search") + serialNumber).get();
+            return Jsoup.connect(getUrl() + page + PropertiesReader.getProperties(PathHolder.SEARCH.getPath())
+                    + serialNumber).get();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

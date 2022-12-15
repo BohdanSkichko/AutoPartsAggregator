@@ -11,13 +11,15 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -25,15 +27,20 @@ import java.util.concurrent.Executor;
 @Slf4j
 @Getter
 @Setter
-@Service
+@Component
 public class SiteParser {
+
     @Autowired
     private Executor executor;
     @Value("#{'${website.urls}'.split(',')}")
     private List<String> urls;
+    @Autowired
+    private RestTemplate restTemplate;
+    private String urlSearch;
 
-    private String UrlSearch;
+    private static final String PRICE = "new-price";
 
+    private static final String APPLICATION = "Application";
 
     public Response searchSparePartBySerialNumber(String serialNumber) {
         return callRemoteHost(serialNumber).join();
@@ -84,6 +91,10 @@ public class SiteParser {
                     sparePartList.add(sparePart);
                 }
             }
+            CostFetcher costFetcher = new CostFetcher(restTemplate, executor, PRICE, sparePartList);
+            for (int i = 0; i < sparePartList.size(); i++) {
+                costFetcher.getCost(i);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             throw new BusinessException(PropertiesReader.getProperties("ukrPartsEx"),
@@ -93,6 +104,6 @@ public class SiteParser {
     }
 
     private String getUrl() {
-        return urls.stream().filter(urls -> urls.contains(UrlSearch)).findFirst().get();
+        return urls.stream().filter(urls -> urls.contains(urlSearch)).findFirst().get();
     }
 }

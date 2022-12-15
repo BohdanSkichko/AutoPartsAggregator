@@ -22,7 +22,7 @@
         <hr/>
         <a class="btn btn-primary" th:href="@{index}">Search spare part by serial number</a>
 
-        <a class="btn btn-primary" th:object="${response}" th:href="@{saveToXlsx}" id="xlsx">Save Data into xlsx</a>
+        <a class="btn btn-primary" th:onclick="'javascript:exportExcel();'" id="xlsx">Save Data into xlsx</a>
         <hr/>
         <div id="load" style="display:none">
             Please wait... Writing data...
@@ -74,14 +74,31 @@
             },
         });
     })
-</script>
-<script>
-    $('#xlsx').click(function () {
+    function exportExcel() {
+        const http = new XMLHttpRequest();
+        const url='http://localhost:8080/api/saveToXlsx';
+        http.open("GET", url);
+        http.responseType = 'blob';
         $("#load").show();
-    });
-</script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.0/jquery.min.js"></script>
+        http.send();
+        http.onload = function (e) {
+            var blob = e.currentTarget.response;
+            $("#load").hide();
+            var contentDispo = e.currentTarget.getResponseHeader('Content-Disposition');
+            var fileName = contentDispo.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/)[1]
+                .replaceAll("%20"," ")
+                .replaceAll("UTF-8''","");
+            saveBlob(blob, fileName);
+        }
+    }
 
+    function saveBlob(blob, fileName) {
+        var a = document.createElement('a');
+        a.href = window.URL.createObjectURL(blob);
+        a.download = fileName;
+        a.dispatchEvent(new MouseEvent('click'));
+    }
+</script>
 <style>
     .outer {
         text-align: center;

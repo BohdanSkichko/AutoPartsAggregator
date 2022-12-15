@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
-
 public interface StringHttpWorker {
     @Slf4j
     final class LogHolder {

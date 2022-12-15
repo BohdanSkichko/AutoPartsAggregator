@@ -2,7 +2,9 @@ package com.example.demo.service.impl;
 
 import com.example.demo.entity.Response;
 import com.example.demo.entity.SparePart;
+import com.example.demo.helper.PathHolder;
 import com.example.demo.helper.PropertiesReader;
+import com.example.demo.helper.UserExcelExporter;
 import com.example.demo.service.SparePartService;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -15,8 +17,8 @@ import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.Executor;
@@ -40,8 +42,11 @@ public class MainService implements SparePartService {
     private AvtozapchastiService avtozapchastiService;
     @Autowired
     private DemexUaService demexUaService;
+
+    private final static String NAME_EXCEL = "Spare Parts.xlsx";
     @Autowired
     private Executor executor;
+
 
     @Override
     public Response searchSparePartBySerialNumber(String serialNumber) {
@@ -50,21 +55,19 @@ public class MainService implements SparePartService {
         for (Response response : listResponse) {
             result.getSparePartList().addAll(response.getSparePartList());
         }
-        List<SparePart> sorted = result.getSparePartList().stream()
+        List<SparePart> withCost = result.getSparePartList().stream()
+                .filter(sparePart -> sparePart.getCost() != 0.0)
                 .sorted(Comparator.comparingDouble(SparePart::getCost))
                 .collect(Collectors.toList());
-        result.setSparePartList(sorted);
+        result.setSparePartList(withCost);
+        log.debug("MainService searchSparePartBySerialNumber sorted result: " + withCost);
+        result.setSparePartList(withCost);
         return result;
     }
 
-    private List<Response> interrogateRemoteHosts(String serialNumber) {
-        List<SparePartService> servicesToCall = new ArrayList<>();
-        servicesToCall.add(avtoPlusService);
-        servicesToCall.add(avtoProService);
-        servicesToCall.add(ukrPartsService);
-        servicesToCall.add(existUaService);
-        servicesToCall.add(demexUaService);
-        servicesToCall.add(avtozapchastiService);
+    public List<Response> interrogateRemoteHosts(String serialNumber) {
+        List<SparePartService> servicesToCall =Arrays.asList(avtozapchastiService, avtoProService,
+                avtoPlusService, demexUaService, existUaService, ukrPartsService);
         List<Response> responses = new ArrayList<>();
         for (SparePartService sparePartService : servicesToCall) {
             try {
@@ -75,48 +78,48 @@ public class MainService implements SparePartService {
             }
         }
         return responses;
-    }
-
-    private InputStreamResource getResource(File file) throws IOException {
-        return new InputStreamResource(Files.newInputStream(file.toPath()));
 
     }
 
-    public ResponseEntity<InputStreamResource> saveFileClientSide(File file) {
+    public ResponseEntity<InputStreamResource> saveFileClientSide(String cost, String fileName, String url) {
         ResponseEntity<InputStreamResource> result = null;
         ContentDisposition contentDisposition = ContentDisposition.builder("ATTACHMENT")
-                .filename(file.getName(), StandardCharsets.UTF_8)
+                .filename(fileName + ".txt", StandardCharsets.UTF_8)
                 .build();
         try {
+            String content = PropertiesReader.getProperties(PathHolder.COST.getPath()) + cost + "\n" +
+                    PropertiesReader.getProperties(PathHolder.URL.getPath()) + url + "\n";
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream(content.getBytes().length);
+            outputStream.write(content.getBytes());
+            outputStream.close();
+            byte[] bytes = outputStream.toByteArray();
+            InputStream inputStream = new ByteArrayInputStream(bytes);
             result = ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
                     .headers(httpHeaders -> httpHeaders.add(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString()))
-                    .body(getResource(file));
+                    .body(new InputStreamResource(inputStream));
         } catch (IOException e) {
             log.error("MainServiceImp thrown Exception: " + e.getMessage() +
-                    " when trying to save a file on client side " + file.getName().trim());
-        } finally {
-            try {
-                Files.deleteIfExists(file.toPath());
-            } catch (IOException e) {
-                log.error("MainServiceImp thrown Exception: " + e.getMessage() +
-                        " when trying to delete a file: " + file.getName());
-            }
+                    " when trying to save a file on client side");
         }
         return result;
     }
 
-    public File createFile(String cost, String fileName, String url) {
-        File file = null;
+    public ResponseEntity<InputStreamResource> saveDataToExelClientSide(List<SparePart> sparePartList) {
+        ResponseEntity<InputStreamResource> result = null;
+        ContentDisposition contentDisposition = ContentDisposition.builder("ATTACHMENT")
+                .filename(NAME_EXCEL, StandardCharsets.UTF_8)
+                .build();
+        UserExcelExporter userExcelExporter = new UserExcelExporter(sparePartList);
         try {
-            file = new File(fileName.trim() + PropertiesReader.getProperties("txt"));
-            FileWriter fileWriter = new FileWriter(file);
-            fileWriter.write(PropertiesReader.getProperties("Cost") + cost + "\n");
-            fileWriter.write(PropertiesReader.getProperties("Url") + url + "\n");
-            fileWriter.close();
+            result = ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .headers(httpHeaders -> httpHeaders.add(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString()))
+                    .body(new InputStreamResource(userExcelExporter.export()));
         } catch (IOException e) {
-            log.error("MainServiceImp throw Exception " + e.getMessage() + " when trying create file: " + fileName.trim());
+            log.error("MainServiceImp thrown Exception: " + e.getMessage() +
+                    " when trying to save a file on client side");
         }
-        return file;
+        return result;
     }
 }
