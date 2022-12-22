@@ -3,12 +3,14 @@ package com.example.demo.service.impl;
 import com.example.demo.entity.Response;
 import com.example.demo.entity.SparePart;
 import com.example.demo.exeptionhendler.BusinessException;
+import com.example.demo.helper.BusinessNameHolder;
 import com.example.demo.helper.PathHolder;
 import com.example.demo.helper.PropertiesReader;
 import com.example.demo.service.SparePartService;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -29,12 +31,12 @@ import java.util.concurrent.Executor;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
+@Slf4j
 public class UkrPartsService implements SparePartService {
     @Autowired
     private Executor executor;
     @Value("#{'${website.urls}'.split(',')}")
     private List<String> urls;
-    private Logger logger = LoggerFactory.getLogger(UkrPartsService.class);
 
     @Override
     public Response searchSparePartBySerialNumber(String serialNumber) {
@@ -44,7 +46,7 @@ public class UkrPartsService implements SparePartService {
     private CompletableFuture<Response> callRemoteHost(String serialNumber) {
         return CompletableFuture.supplyAsync(
                 () -> {
-                    logger.info("find spare parts UKR PARTS " + Thread.currentThread().getName());
+                    log.info("find spare parts UKR PARTS " + Thread.currentThread().getName());
                     try {
                         Response response = new Response();
                         response.getSparePartList().addAll(extractDataFromUkrparts(serialNumber));
@@ -60,7 +62,7 @@ public class UkrPartsService implements SparePartService {
         try {
             Document document = Jsoup.connect(getUrl() + serialNumber).get();
             List<Element> listElement = new ArrayList<>(document
-                    .getElementsByClass(PropertiesReader.getProperties(PathHolder.WRAPPER.getPath())));
+                    .getElementsByClass(BusinessNameHolder.PART_BOX_WRAPPER.getPath()));
             sparePartList.addAll(extractFromElementList(listElement));
         } catch (Exception e) {
             e.printStackTrace();
@@ -75,28 +77,27 @@ public class UkrPartsService implements SparePartService {
         try {
             for (Element e : listElement) {
                 Elements elementsName = e.
-                        getElementsByClass(PropertiesReader.getProperties(PathHolder.ARTICLE.getPath()));
+                        getElementsByClass(BusinessNameHolder.PART_ARTICLE.getPath());
                 SparePart sparePart = new SparePart();
                 sparePart.setDescription(elementsName.text());
                 Elements elementPrice = e.
-                        getElementsByClass(PropertiesReader.getProperties(PathHolder.PRICE_MIN.getPath()));
+                        getElementsByClass(BusinessNameHolder.PRICE_MIN.getPath());
                 String text = elementPrice.text();
-                String cost = text.replaceAll(PropertiesReader.getProperties(PathHolder.REPLACE_TEXT.getPath()), "");
-                if (!cost.isEmpty()) {
+                String cost = text.replaceAll(BusinessNameHolder.REPLACE_TEXT.getPath(), "");
+                if (cost.isEmpty()) {
                     break;
                 }
-                sparePart.setCost(Integer.parseInt(cost));
-                Elements elementsURL = e.getElementsByTag(PropertiesReader.getProperties(PathHolder.A.getPath()));
-                if (StringUtils.hasText(elementsURL.attr(PropertiesReader.getProperties(PathHolder.HREF.getPath())))) {
+                sparePart.setCost(Double.parseDouble(cost));
+                Elements elementsURL = e.getElementsByTag(BusinessNameHolder.A.getPath());
+                if (StringUtils.hasText(elementsURL.attr(BusinessNameHolder.HREF.getPath()))) {
                     sparePart.setUrl(PropertiesReader.getProperties(PathHolder.URL_UKR_PARTS.getPath()) +
-                            elementsURL.attr(PropertiesReader.getProperties(PathHolder.HREF.getPath())));
+                            elementsURL.attr(BusinessNameHolder.HREF.getPath()));
                     sparePartList.add(sparePart);
-                    break;
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
-            throw new BusinessException(PropertiesReader.getProperties(PathHolder.A.getPath()),
+            throw new BusinessException(PropertiesReader.getProperties(PathHolder.URL_UKR_PARTS.getPath()),
                     "extractFromElementList" + e.getMessage(), e);
         }
         return sparePartList;

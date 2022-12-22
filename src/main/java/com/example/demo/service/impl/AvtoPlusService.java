@@ -3,17 +3,17 @@ package com.example.demo.service.impl;
 import com.example.demo.entity.Response;
 import com.example.demo.entity.SparePart;
 import com.example.demo.exeptionhendler.BusinessException;
+import com.example.demo.helper.BusinessNameHolder;
 import com.example.demo.helper.PathHolder;
 import com.example.demo.helper.PropertiesReader;
 import com.example.demo.service.SparePartService;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -26,24 +26,26 @@ import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
+@Slf4j
 public class AvtoPlusService implements SparePartService {
     @Autowired
     private Executor executor;
-    private static final String APPLICATION = "Application";
     @Autowired
     private RestTemplate restTemplate;
     @Value("#{${pages}}")
     private int pages;
     @Value("#{'${website.urls}'.split(',')}")
     private List<String> urls;
-    private final Logger logger = LoggerFactory.getLogger(AvtoPlusService.class);
+    private final static int FIRST_PAGE = 1;
 
     @Override
     public Response searchSparePartBySerialNumber(String serialNumber) {
@@ -54,9 +56,9 @@ public class AvtoPlusService implements SparePartService {
     private CompletableFuture<Response> callRemoteHost(String serialNumber, Response response) {
         return CompletableFuture.supplyAsync(
                 () -> {
-                    logger.info("find spare parts AVTO PLUS " + Thread.currentThread().getName());
+                    log.info("find spare parts AVTO PLUS " + Thread.currentThread().getName());
                     try {
-                        extractDataAvtoPlus(response, serialNumber);
+                        response.getSparePartList().addAll(extractDataOnAllPages(serialNumber));
                     } catch (BusinessException e) {
                         e.printStackTrace();
                         throw new RuntimeException(e);
@@ -65,23 +67,16 @@ public class AvtoPlusService implements SparePartService {
                 }, executor);
     }
 
-    private void extractDataAvtoPlus(Response response, String serialNumber) {
-        int pagesQuantity = 1;
-        Document docWithPageQuantity = getDocumentFirstPage(serialNumber, pagesQuantity);
-        pagesQuantity = getPagesQuantityInDocument(pagesQuantity, docWithPageQuantity);
-        for (int numberPage = 1; numberPage <= pagesQuantity; numberPage++) {
-            getSparePartOnPageAvtoPlus(response, serialNumber, numberPage);
-        }
-    }
-
-    private int getPagesQuantityInDocument(int pagesQuantity, Document docWithPageQuantity) {
+    private int getPagesQuantityInDocument(Document docWithPageQuantity) {
+        int pagesQuantity = FIRST_PAGE;
         Element listPages = docWithPageQuantity.
-                getElementsByClass(PropertiesReader.getProperties(PathHolder.LOAD_MORE.getPath())).first();
+                getElementsByClass(BusinessNameHolder.LOAD_MORE_SEARCH.getPath()).first();
         if (listPages != null) {
             Element elementWithQuantityPages = listPages
-                    .getElementsByAttribute(PropertiesReader.getProperties(PathHolder.DATA_TOTAL.getPath())).first();
+                    .getElementsByAttribute(BusinessNameHolder.DATA_TOTAL.getPath()).first();
+            assert elementWithQuantityPages != null;
             pagesQuantity = Integer.parseInt(elementWithQuantityPages
-                    .attr(PropertiesReader.getProperties(PathHolder.DATA_TOTAL.getPath())));
+                    .attr(BusinessNameHolder.DATA_TOTAL.getPath()));
             if (pagesQuantity > pages) {
                 pagesQuantity = pages;
             }
@@ -89,55 +84,77 @@ public class AvtoPlusService implements SparePartService {
         return pagesQuantity;
     }
 
-    private void getSparePartOnPageAvtoPlus(Response response, String serialNumber, int page) {
-        CompletableFuture.supplyAsync(() -> {
+    private CompletableFuture<List<SparePart>> getSparePartOnPage(String serialNumber, int page) {
+        return CompletableFuture.supplyAsync(() -> {
+            List<SparePart> sparePartList = new ArrayList<>();
             try {
-                String urlCost = getUrl() + page + PropertiesReader.getProperties(PathHolder.SEARCH.getPath()) + serialNumber;
-                HttpHeaders headers = new HttpHeaders();
-                headers.add(HttpHeaders.USER_AGENT, APPLICATION);
-                HttpEntity<String> entity = new HttpEntity<>(headers);
-                HttpEntity<String> body = restTemplate.exchange(urlCost, HttpMethod.GET, entity, String.class);
-                Document document = Jsoup.parse(body.getBody());
+                String url = getUrl() + page + BusinessNameHolder.SEARCH.getPath() + serialNumber;
+                Document document = getDocumentFromRemoteHost(url, BusinessNameHolder.APPLICATION.getPath(), restTemplate);
                 List<Element> listElementInside = new ArrayList<>(document.
-                        getElementsByClass(PropertiesReader.getProperties(PathHolder.PRODUCT.getPath())));
+                        getElementsByClass(BusinessNameHolder.GOOD_ITEM.getPath()));
                 for (Element element : listElementInside) {
-                    processPage(response, element);
+                    sparePartList.addAll(extractDataOnPage(element));
                 }
             } catch (Exception e) {
                 e.printStackTrace();
                 throw new BusinessException(PropertiesReader.getProperties("avtoPlusEx"),
                         e.getMessage(), e);
             }
-            return response;
+            return sparePartList;
         }, executor);
     }
 
-    private void processPage(Response response, Element element) {
+    public static Document getDocumentFromRemoteHost(String url, String application, RestTemplate restTemplate) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.USER_AGENT, application);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        HttpEntity<String> body = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+        return Jsoup.parse(Objects.requireNonNull(body.getBody()));
+    }
+
+    private List<SparePart> extractDataOnAllPages(String serialNumber) {
+        Document docWithPageQuantity = getDocumentFirstPage(serialNumber);
+        int pagesQuantity = getPagesQuantityInDocument(docWithPageQuantity);
+        List<CompletableFuture<List<SparePart>>> completableFutures = new ArrayList<>();
+        for (int pageNumber = FIRST_PAGE; pageNumber <= pagesQuantity; pageNumber++) {
+            completableFutures.add(getSparePartOnPage(serialNumber, pageNumber));
+        }
+        List<List<SparePart>> listList = completableFutures.stream()
+                .map(CompletableFuture::join)
+                .collect(Collectors.toList());
+        List<SparePart> sparePartList = new ArrayList<>();
+        for (List<SparePart> list : listList) {
+            sparePartList.addAll(list);
+        }
+        return sparePartList;
+    }
+
+    private List<SparePart> extractDataOnPage(Element element) {
+        List<SparePart> sparePartList = new ArrayList<>();
         try {
-            Element elementWithItem = element.getElementsByTag(PropertiesReader.getProperties(PathHolder.A.getPath())).get(1);
+            Element elementWithItem = element.getElementsByTag(BusinessNameHolder.A.getPath()).get(1);
             SparePart sparePart = new SparePart();
             if (StringUtils.hasText(elementWithItem.text())) {
                 sparePart.setDescription(elementWithItem.text());
                 String cost = element
-                        .getElementsByClass(PropertiesReader.getProperties(PathHolder.BUTTON_UAH.getPath()))
+                        .getElementsByClass(BusinessNameHolder.BASKET_BUTTON.getPath())
                         .text()
-                        .replaceAll(PropertiesReader.getProperties(PathHolder.REPLACE_TEXT.getPath()), "");
+                        .replaceAll(BusinessNameHolder.REPLACE_TEXT.getPath(), "");
                 sparePart.setCost(Integer.parseInt(cost));
                 sparePart.setUrl(PropertiesReader.getProperties(PathHolder.URL_AVTO_PLUS.getPath()) +
-                        elementWithItem.attr(PropertiesReader.getProperties(PathHolder.HREF.getPath())));
-                response.getSparePartList().add(sparePart);
+                        elementWithItem.attr(BusinessNameHolder.HREF.getPath()));
+                sparePartList.add(sparePart);
             }
         } catch (
                 Exception ex) {
             throw new BusinessException(PropertiesReader.getProperties("avtoPlusEx"), ex.getMessage(), ex);
         }
-
+        return sparePartList;
     }
 
-    private Document getDocumentFirstPage(String serialNumber, int page) {
+    private Document getDocumentFirstPage(String serialNumber) {
         try {
-            return Jsoup.connect(getUrl() + page + PropertiesReader.getProperties(PathHolder.SEARCH.getPath())
-                    + serialNumber).get();
+            return Jsoup.connect(getUrl() + FIRST_PAGE + BusinessNameHolder.SEARCH.getPath() + serialNumber).get();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

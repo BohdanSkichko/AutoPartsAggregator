@@ -2,8 +2,7 @@ package com.example.demo.service.impl;
 
 import com.example.demo.entity.Response;
 import com.example.demo.entity.SparePart;
-import com.example.demo.helper.PathHolder;
-import com.example.demo.helper.PropertiesReader;
+import com.example.demo.helper.BusinessNameHolder;
 import com.example.demo.helper.UserExcelExporter;
 import com.example.demo.service.SparePartService;
 import lombok.AllArgsConstructor;
@@ -17,10 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
@@ -42,11 +38,9 @@ public class MainService implements SparePartService {
     private AvtozapchastiService avtozapchastiService;
     @Autowired
     private DemexUaService demexUaService;
-
     private final static String NAME_EXCEL = "Spare Parts.xlsx";
     @Autowired
     private Executor executor;
-
 
     @Override
     public Response searchSparePartBySerialNumber(String serialNumber) {
@@ -66,29 +60,22 @@ public class MainService implements SparePartService {
     }
 
     public List<Response> interrogateRemoteHosts(String serialNumber) {
-        List<SparePartService> servicesToCall =Arrays.asList(avtozapchastiService, avtoProService,
+        List<SparePartService> servicesToCall = Arrays.asList(avtozapchastiService, avtoProService,
                 avtoPlusService, demexUaService, existUaService, ukrPartsService);
-        List<Response> responses = new ArrayList<>();
-        for (SparePartService sparePartService : servicesToCall) {
-            try {
-                responses.add(sparePartService.searchSparePartBySerialNumber(serialNumber));
-            } catch (Exception e) {
-                log.error("Service " + sparePartService + " thrown Exception: "
-                        + e.getMessage() + ". Skipping the error and call others.");
-            }
-        }
-        return responses;
-
+        return servicesToCall.parallelStream()
+                .map(s -> (s.searchSparePartBySerialNumber(serialNumber)))
+                .unordered()
+                .collect(Collectors.toList());
     }
 
     public ResponseEntity<InputStreamResource> saveFileClientSide(String cost, String fileName, String url) {
         ResponseEntity<InputStreamResource> result = null;
         ContentDisposition contentDisposition = ContentDisposition.builder("ATTACHMENT")
-                .filename(fileName + ".txt", StandardCharsets.UTF_8)
+                .filename(fileName + BusinessNameHolder.TXT.getPath(), StandardCharsets.UTF_8)
                 .build();
         try {
-            String content = PropertiesReader.getProperties(PathHolder.COST.getPath()) + cost + "\n" +
-                    PropertiesReader.getProperties(PathHolder.URL.getPath()) + url + "\n";
+            String content = BusinessNameHolder.COST.getPath() + cost + "\n" +
+                    BusinessNameHolder.URL + url + "\n";
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream(content.getBytes().length);
             outputStream.write(content.getBytes());
             outputStream.close();

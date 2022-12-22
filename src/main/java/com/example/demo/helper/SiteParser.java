@@ -10,7 +10,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
@@ -27,20 +26,15 @@ import java.util.concurrent.Executor;
 @Slf4j
 @Getter
 @Setter
-@Component
 public class SiteParser {
 
-    @Autowired
     private Executor executor;
-    @Value("#{'${website.urls}'.split(',')}")
-    private List<String> urls;
-    @Autowired
     private RestTemplate restTemplate;
+
+    private List<String> urls;
+
     private String urlSearch;
 
-    private static final String PRICE = "new-price";
-
-    private static final String APPLICATION = "Application";
 
     public Response searchSparePartBySerialNumber(String serialNumber) {
         return callRemoteHost(serialNumber).join();
@@ -64,12 +58,12 @@ public class SiteParser {
         List<SparePart> sparePartList = new ArrayList<>();
         try {
             Document document = Jsoup.connect(getUrl() + serialNumber).get();
-            Element element = document.getElementsByClass(PropertiesReader.getProperties(PathHolder.DL.getPath())).first();
-            sparePartList.addAll(extractFromElementList(element));
+            Element element = document.getElementsByClass(BusinessNameHolder.DL_HORIZONTAL.getPath()).first();
+            if (element != null) sparePartList.addAll(extractFromElementList(element));
         } catch (Exception e) {
             e.printStackTrace();
-            throw new BusinessException(PropertiesReader.getProperties("ukrPartsEx"),
-                    "Exception occurred in extractDataFromUkrparts: " + e.getMessage(), e);
+            throw new BusinessException(SiteParser.class.getName(),
+                    " exception occurred in extractData: " + e.getMessage(), e);
         }
         return sparePartList;
     }
@@ -77,11 +71,11 @@ public class SiteParser {
     private List<SparePart> extractFromElementList(Element element) {
         List<SparePart> sparePartList = new ArrayList<>();
         try {
-            Elements elementsName = element.getElementsByTag(PathHolder.A.getPath());
-            Elements elementsDescription = element.getElementsByTag(PropertiesReader.getProperties(PathHolder.STRONG.getPath()));
+            Elements elementsName = element.getElementsByTag(BusinessNameHolder.A.getPath());
+            Elements elementsDescription = element.getElementsByTag(BusinessNameHolder.STRONG.getPath());
             int elementDescription = 0;
             for (int i = 0; i < elementsName.size() - 1; i += 2) {
-                String url = elementsName.get(i).attr(PathHolder.HREF.getPath());
+                String url = elementsName.get(i).attr(BusinessNameHolder.HREF.getPath());
                 String description = elementsDescription.get(elementDescription).text();
                 elementDescription++;
                 if (StringUtils.hasText(description)) {
@@ -91,14 +85,13 @@ public class SiteParser {
                     sparePartList.add(sparePart);
                 }
             }
-            CostFetcher costFetcher = new CostFetcher(restTemplate, executor, PRICE, sparePartList);
-            for (int i = 0; i < sparePartList.size(); i++) {
-                costFetcher.getCost(i);
-            }
+            CostFetcher costFetcher = new CostFetcher(restTemplate, executor,
+                    BusinessNameHolder.NEW_PRICE.getPath(), sparePartList);
+            sparePartList = costFetcher.setCostFromRemoteHost();
         } catch (Exception e) {
             e.printStackTrace();
-            throw new BusinessException(PropertiesReader.getProperties("ukrPartsEx"),
-                    "extractFromElementList" + e.getMessage(), e);
+            throw new BusinessException(SiteParser.class.getName(),
+                    " extractFromElementList" + e.getMessage(), e);
         }
         return sparePartList;
     }
