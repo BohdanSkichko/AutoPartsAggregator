@@ -24,6 +24,9 @@ public class UserExcelExporter {
     private XSSFWorkbook workbook;
     private XSSFSheet sheet;
     private List<SparePart> spareParts;
+    private static int COLUM_COST = 0;
+    private static int COLUM_DESCRIPTION = 1;
+    private static int COLUM_URL = 2;
 
     public UserExcelExporter(List<SparePart> spareParts) {
         this.spareParts = spareParts;
@@ -41,9 +44,9 @@ public class UserExcelExporter {
         font.setFontHeight(16);
         style.setFont(font);
 
-        createCell(row, 0, "Cost", style);
-        createCell(row, 1, "Description", style);
-        createCell(row, 2, "Url", style);
+        createCell(row, COLUM_COST, "Cost", style);
+        createCell(row, COLUM_DESCRIPTION, "Description", style);
+        createCell(row, COLUM_URL, "Url", style);
 
     }
 
@@ -72,9 +75,9 @@ public class UserExcelExporter {
             createCell(row, columnCount++, sparePart.getDescription(), style);
             createCell(row, columnCount++, sparePart.getUrl(), style);
         }
-        sheet.autoSizeColumn(0);
-        sheet.autoSizeColumn(1);
-        sheet.autoSizeColumn(2);
+        sheet.autoSizeColumn(COLUM_COST);
+        sheet.autoSizeColumn(COLUM_DESCRIPTION);
+        sheet.autoSizeColumn(COLUM_URL);
     }
 
     public InputStream export() throws IOException {

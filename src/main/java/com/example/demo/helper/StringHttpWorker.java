@@ -31,8 +31,8 @@ public interface StringHttpWorker {
                          result.getSparePartList().addAll(extractJsonNode(arrayNode));
                         }
                         return result;
-                    } catch (BusinessException | JsonProcessingException e) {
-                        throw new RuntimeException(e);
+                    } catch (Exception e) {
+                        throw new BusinessException(e.getMessage(), e);
                     }
                 }, executor);
     }

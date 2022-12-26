@@ -11,12 +11,20 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.http.*;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
@@ -26,6 +34,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @EqualsAndHashCode
 public class MainService implements SparePartService {
+    private final static String NAME_EXCEL = "Spare Parts.xlsx";
     @Autowired
     private AvtoProService avtoProService;
     @Autowired
@@ -38,7 +47,6 @@ public class MainService implements SparePartService {
     private AvtozapchastiService avtozapchastiService;
     @Autowired
     private DemexUaService demexUaService;
-    private final static String NAME_EXCEL = "Spare Parts.xlsx";
     @Autowired
     private Executor executor;
 

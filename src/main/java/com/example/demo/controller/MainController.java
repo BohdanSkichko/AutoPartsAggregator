@@ -24,7 +24,7 @@ public class MainController {
     @Autowired
     private final MainService mainService;
 
-    @GetMapping(value = "/search")
+    @GetMapping(value = "search")
     @ApiOperation(value = "Get price and reference",
             notes = "Find spare part by SN. For best results, enter the serial number or spare part number")
     @ApiImplicitParam(name = "serialNumber", required = true,
@@ -36,8 +36,12 @@ public class MainController {
     })
     public ModelAndView getSparePartBySerialNumber(@ModelAttribute("serialNumber") String serialNumber) {
         ModelAndView result = new ModelAndView("spare-part");
-        Response response = mainService.searchSparePartBySerialNumber(serialNumber);
-        result.addObject("spare", response.getSparePartList());
+        Response response = new Response();
+        try {
+            response = mainService.searchSparePartBySerialNumber(serialNumber);
+        } catch (Exception e) {
+            response.setError(e.getMessage());
+        }
         result.addObject("response", response);
         return result;
     }

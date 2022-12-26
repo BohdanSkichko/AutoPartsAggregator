@@ -15,8 +15,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -51,8 +49,8 @@ public class UkrPartsService implements SparePartService {
                         Response response = new Response();
                         response.getSparePartList().addAll(extractDataFromUkrparts(serialNumber));
                         return response;
-                    } catch (BusinessException e) {
-                        throw new RuntimeException(e);
+                    } catch (Exception e) {
+                        throw new BusinessException(e.getMessage(),e);
                     }
                 }, executor);
     }
@@ -66,8 +64,7 @@ public class UkrPartsService implements SparePartService {
             sparePartList.addAll(extractFromElementList(listElement));
         } catch (Exception e) {
             e.printStackTrace();
-            throw new BusinessException(PropertiesReader.getProperties("ukrPartsEx"),
-                    "Exception occurred in extractDataFromUkrparts: " + e.getMessage(), e);
+            throw new BusinessException(e.getMessage(), e);
         }
         return sparePartList;
     }
@@ -97,8 +94,7 @@ public class UkrPartsService implements SparePartService {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            throw new BusinessException(PropertiesReader.getProperties(PathHolder.URL_UKR_PARTS.getPath()),
-                    "extractFromElementList" + e.getMessage(), e);
+            throw new BusinessException(e.getMessage(), e);
         }
         return sparePartList;
     }

@@ -11,7 +11,6 @@ public enum BusinessNameHolder {
     DESCRIPTION("description"),
     TRADEMARK_DESCRIPTION("trademark_description"),
     DATA_TOTAL("data-total"),
-    DATA("data"),
     PART_BOX_WRAPPER("col-xs-12 col-md-4 part_box_wrapper"),
     PART_ARTICLE("part_article"),
     PRICE_MIN("price_min"),

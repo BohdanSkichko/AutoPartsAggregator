@@ -1,6 +1,7 @@
 package com.example.demo.helper;
 
 
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,9 +10,8 @@ import java.io.InputStream;
 import java.util.Properties;
 
 
+@Slf4j
 public class PropertiesReader {
-    private static final Logger LOG = LoggerFactory.getLogger(PropertiesReader.class.getName());
-
     private static final String CONFIG_PROPERTIES = "application.properties";
 
     public static String getProperties(String key) {
@@ -19,7 +19,7 @@ public class PropertiesReader {
         try (InputStream input = PropertiesReader.class.getClassLoader().getResourceAsStream(CONFIG_PROPERTIES)) {
             Properties properties = new Properties();
             if (input == null) {
-                LOG.error("Unable to find application.properties = {}", (Object) null);
+                log.error("Unable to find application.properties = {}", (Object) null);
             }
             properties.load(input);
             return properties.getProperty(key);

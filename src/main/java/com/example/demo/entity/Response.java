@@ -12,4 +12,5 @@ import java.util.*;
 @AllArgsConstructor
 public class Response {
     private List<SparePart> sparePartList = new ArrayList<>();
+    private String error;
 }

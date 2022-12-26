@@ -23,15 +23,18 @@
     <div class="container">
         <hr/>
         <h3>Search spare part</h3>
-        <form th:action="@{search}" th:object="${serialNumber}" method="GET">
-                <input type="text" th:field="*{serialNumber}" class="form-control col-12 mb-5"
-                       placeholder="Enter serial number for best results"/>
+        <form name="search" th:action="@{search}" th:object="${serialNumber}" method="GET">
+            <input type="text" th:field="*{serialNumber}" class="form-control col-12 mb-5"
+                   placeholder="Enter serial number for best results" name="serialNumber" required/>
             <button type="submit" class="btn btn-primary col-2" id="submit">Search</button>
         </form>
     </div>
     <script>
         $('#submit').click(function () {
-            $("#load").show();
+            var input = document.forms["search"]["serialNumber"].value;
+            if (input !== "") {
+                $("#load").show();
+            }
         });
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.0/jquery.min.js"></script>

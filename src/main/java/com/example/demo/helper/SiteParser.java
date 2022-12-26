@@ -10,6 +10,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
@@ -26,44 +27,44 @@ import java.util.concurrent.Executor;
 @Slf4j
 @Getter
 @Setter
+@Component
 public class SiteParser {
-
+    @Autowired
     private Executor executor;
+    @Autowired
     private RestTemplate restTemplate;
-
+    @Autowired
+    private CostFetcher costFetcher;
+    @Value("#{'${website.urls}'.split(',')}")
     private List<String> urls;
 
-    private String urlSearch;
 
-
-    public Response searchSparePartBySerialNumber(String serialNumber) {
-        return callRemoteHost(serialNumber).join();
+    public Response searchSparePartBySerialNumber(String serialNumber, String url) {
+        return callRemoteHost(serialNumber, url).join();
     }
 
-    private CompletableFuture<Response> callRemoteHost(String serialNumber) {
+    private CompletableFuture<Response> callRemoteHost(String serialNumber, String url) {
         return CompletableFuture.supplyAsync(
                 () -> {
                     log.info("find spare parts" + getClass().getTypeName() + " " + Thread.currentThread().getName());
                     try {
                         Response result = new Response();
-                        result.getSparePartList().addAll(extractData(serialNumber));
+                        result.getSparePartList().addAll(extractData(serialNumber, url));
                         return result;
-                    } catch (BusinessException e) {
-                        throw new RuntimeException(e);
+                    } catch (Exception e) {
+                        throw new BusinessException(e.getMessage(), e);
                     }
                 }, executor);
     }
 
-    private List<SparePart> extractData(String serialNumber) {
+    private List<SparePart> extractData(String serialNumber, String url) {
         List<SparePart> sparePartList = new ArrayList<>();
         try {
-            Document document = Jsoup.connect(getUrl() + serialNumber).get();
+            Document document = Jsoup.connect(getUrl(url) + serialNumber).get();
             Element element = document.getElementsByClass(BusinessNameHolder.DL_HORIZONTAL.getPath()).first();
             if (element != null) sparePartList.addAll(extractFromElementList(element));
         } catch (Exception e) {
-            e.printStackTrace();
-            throw new BusinessException(SiteParser.class.getName(),
-                    " exception occurred in extractData: " + e.getMessage(), e);
+            throw new BusinessException(e.getMessage(), e);
         }
         return sparePartList;
     }
@@ -85,18 +86,15 @@ public class SiteParser {
                     sparePartList.add(sparePart);
                 }
             }
-            CostFetcher costFetcher = new CostFetcher(restTemplate, executor,
-                    BusinessNameHolder.NEW_PRICE.getPath(), sparePartList);
-            sparePartList = costFetcher.setCostFromRemoteHost();
+            sparePartList = costFetcher.setCostFromRemoteHost(sparePartList, BusinessNameHolder.NEW_PRICE.getPath());
         } catch (Exception e) {
             e.printStackTrace();
-            throw new BusinessException(SiteParser.class.getName(),
-                    " extractFromElementList" + e.getMessage(), e);
+            throw new BusinessException(e.getMessage(), e);
         }
         return sparePartList;
     }
 
-    private String getUrl() {
-        return urls.stream().filter(urls -> urls.contains(urlSearch)).findFirst().get();
+    private String getUrl(String url) {
+        return urls.stream().filter(urls -> urls.contains(url)).findFirst().get();
     }
 }

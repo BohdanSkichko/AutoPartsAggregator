@@ -35,6 +35,8 @@ public class ExistUaService implements SparePartService, StringHttpWorker {
     private RestTemplate restTemplate;
     @Autowired
     private Executor executor;
+    @Autowired
+    private CostFetcher costFetcher;
     @Value("#{${pages}}")
     private int pages;
     @Value("#{'${website.urls}'.split(',')}")
@@ -67,13 +69,10 @@ public class ExistUaService implements SparePartService, StringHttpWorker {
                     }
                 }
             }
-            CostFetcher costFetcher = new CostFetcher(restTemplate, executor,
-                    BusinessNameHolder.EXIST_GET_BY_CLASS.getPath(), sparePartList);
-            sparePartList = costFetcher.setCostFromRemoteHost(BusinessNameHolder.SPAN.getPath());
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new BusinessException(PropertiesReader.getProperties("existUA"),
-                    "Exception occurred in extractJsonNode(): " + e.getMessage(), e);
+            sparePartList = costFetcher.setCostFromRemoteHost(BusinessNameHolder.SPAN.getPath(), sparePartList, BusinessNameHolder.EXIST_GET_BY_CLASS.getPath());
+        } catch (BusinessException e) {
+            log.error(e.getMessage() +
+                    "trying to extract Json Node");
         }
         return sparePartList;
     }

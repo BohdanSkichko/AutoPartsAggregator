@@ -30,6 +30,8 @@ public class AvtoProService implements SparePartService, StringHttpWorker {
     private RestTemplate restTemplate;
     @Autowired
     private Executor executor;
+    @Autowired
+    private CostFetcher costFetcher;
     @Value("#{${pages}}")
     private int pages;
     @Value("#{'${website.urls}'.split(',')}")
@@ -85,13 +87,11 @@ public class AvtoProService implements SparePartService, StringHttpWorker {
                     sparePartList.add(sparePart);
                 }
             }
-            CostFetcher costFetcher = new CostFetcher(restTemplate, executor,
-                    BusinessNameHolder.MICRODATA.getPath(), sparePartList);
-            sparePartList = costFetcher.setCostFromRemoteHost(BusinessNameHolder.SPAN.getPath());
+            sparePartList = costFetcher.setCostFromRemoteHost(BusinessNameHolder.SPAN.getPath(), sparePartList,
+                    BusinessNameHolder.MICRODATA.getPath());
         } catch (Exception e) {
             e.printStackTrace();
-            throw new BusinessException(PropertiesReader.getProperties("avtoProEx"),
-                    "Exception occurred in extractJsonNode(): " + e.getMessage(), e);
+            throw new BusinessException(e.getMessage(), e);
         }
         return sparePartList;
     }
