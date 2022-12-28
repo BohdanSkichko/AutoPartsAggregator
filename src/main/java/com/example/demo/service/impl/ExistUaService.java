@@ -3,7 +3,7 @@ package com.example.demo.service.impl;
 import com.example.demo.entity.Response;
 import com.example.demo.entity.SparePart;
 import com.example.demo.exeptionhendler.BusinessException;
-import com.example.demo.helper.*;
+import com.example.demo.helpers.*;
 import com.example.demo.service.SparePartService;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.AllArgsConstructor;

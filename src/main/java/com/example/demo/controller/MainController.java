@@ -42,6 +42,7 @@ public class MainController {
         } catch (Exception e) {
             response.setError(e.getMessage());
         }
+        log.debug(" RESULT " + response.getSparePartList());
         result.addObject("response", response);
         return result;
     }

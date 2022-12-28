@@ -2,8 +2,8 @@ package com.example.demo.service.impl;
 
 import com.example.demo.entity.Response;
 import com.example.demo.entity.SparePart;
-import com.example.demo.helper.BusinessNameHolder;
-import com.example.demo.helper.UserExcelExporter;
+import com.example.demo.helpers.BusinessNameHolder;
+import com.example.demo.helpers.UserExcelExporter;
 import com.example.demo.service.SparePartService;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -70,10 +70,12 @@ public class MainService implements SparePartService {
     public List<Response> interrogateRemoteHosts(String serialNumber) {
         List<SparePartService> servicesToCall = Arrays.asList(avtozapchastiService, avtoProService,
                 avtoPlusService, demexUaService, existUaService, ukrPartsService);
-        return servicesToCall.parallelStream()
+        List<Response> list = servicesToCall.parallelStream()
                 .map(s -> (s.searchSparePartBySerialNumber(serialNumber)))
                 .unordered()
                 .collect(Collectors.toList());
+        log.debug("List Responses: " + list);
+        return list;
     }
 
     public ResponseEntity<InputStreamResource> saveFileClientSide(String cost, String fileName, String url) {
