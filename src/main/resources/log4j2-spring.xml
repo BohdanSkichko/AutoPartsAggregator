@@ -12,8 +12,6 @@
                 <pattern>%d %p %C{1.} [%t] %m%n</pattern>
             </PatternLayout>
             <Policies>
-                <!-- rollover on startup, daily and when the file reaches
-                    10 MegaBytes -->
                 <OnStartupTriggeringPolicy />
                 <SizeBasedTriggeringPolicy
                         size="10 MB" />
@@ -23,14 +21,10 @@
     </Appenders>
 
     <Loggers>
-        <!-- LOG everything at INFO level -->
         <Root level="debug">
             <AppenderRef ref="Console" />
             <AppenderRef ref="RollingFile" />
         </Root>
-
-
-<!--        <Logger name="com.baeldung" level="trace"></Logger>-->
     </Loggers>
 
 </Configuration>
