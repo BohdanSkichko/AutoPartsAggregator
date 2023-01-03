@@ -4,8 +4,8 @@ import com.carspareparts.finder.dto.Response;
 import com.carspareparts.finder.dto.SparePart;
 import com.carspareparts.finder.exception.BusinessException;
 import com.carspareparts.finder.service.SparePartService;
-import com.carspareparts.finder.string_enum.BusinessNameHolder;
-import com.carspareparts.finder.string_enum.StringRegexHolder;
+import com.carspareparts.finder.helper.stringenumholder.BusinessNameHolder;
+import com.carspareparts.finder.helper.stringenumholder.StringRegexHolder;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -51,7 +51,7 @@ public class UkrPartsService implements SparePartService {
                         response.getSparePartList().addAll(extractDataFromUkrparts(serialNumber));
                         return response;
                     } catch (Exception e) {
-                        log.error(e.getMessage() + " when trying to call remote haost " + e);
+                        log.error(e.getMessage() + " when trying to call remote host " + e);
                         throw new BusinessException(e.getMessage(),e);
                     }
                 }, executor);

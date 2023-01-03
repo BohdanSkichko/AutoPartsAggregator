@@ -1,4 +1,4 @@
-package com.carspareparts.finder.string_enum;
+package com.carspareparts.finder.helper.stringenumholder;
 
 public enum StringRegexHolder {
     REPLACE_TEXT("[а-яА-Яії: ?a-zA-Z;&]+"),

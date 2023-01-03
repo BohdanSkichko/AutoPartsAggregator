@@ -1,18 +1,17 @@
-/*
-package com.example.demo.services;
+package com.carspareparts.finder.services;
 
-import com.example.demo.dto.Response;
-import com.example.demo.dto.SparePart;
-import com.example.demo.helper.CostFetcher;
-import com.example.demo.service.impl.AvtoProService;
+import com.carspareparts.finder.dto.Response;
+import com.carspareparts.finder.dto.SparePart;
+import com.carspareparts.finder.helper.CostFetcher;
+import com.carspareparts.finder.service.impl.AvtoProService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpEntity;
 import org.springframework.web.client.RestTemplate;
@@ -22,6 +21,7 @@ import java.util.List;
 import java.util.concurrent.Executor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -29,21 +29,16 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class AvtoProServiceTest {
 
-//    @InjectMocks
-//    private AvtoProServiceImp avtoProServiceImp;
-
-    @Mock
-    private Executor executor;
+    @InjectMocks
+    private AvtoProService avtoProService;
 
     @Mock
     private RestTemplate restTemplate;
-
     @Mock
-    private List<String> strings;
+    private Executor executor;
     @Mock
     private CostFetcher costFetcher;
-    @Spy
-    AvtoProService avtoProService = new AvtoProService(restTemplate, executor, costFetcher, 10, strings);
+
 
     @Test
     public void getListSparePart() {
@@ -215,31 +210,25 @@ public class AvtoProServiceTest {
 
         );
 
-        Response response = new Response();
+
         SparePart first = new SparePart();
-        first.setUrl("https://avto.pro//system/search/result/.aspx?sId=20221116202341-6a5d4861-8c6d-456b-a7e1-2a8e808f81c5&seqId=0&sInd=0&uri=%2Fpart-20-AC_DELCO-435%2F&queryId=20221116213327-81b1930b-6cad-4f88-8a49-4985ecf35cbd&selectSuggest=AC%20Delco%2020");
+        first.setUrl("null" + "part-20-AC_DELCO-435");
         first.setCost(0);
-        first.setDescription("AC Delco 20");
+        first.setDescription("AC Delco 20 ");
         SparePart second = new SparePart();
-        second.setUrl("https://avto.pro//system/search/result/.aspx?sId=20221116202341-6a5d4861-8c6d-456b-a7e1-2a8e808f81c5&seqId=0&sInd=71&uri=%2Fzapchasti-20-%D0%A8%D0%9B%D0%90%D0%9D%D0%93_%D0%9D%D0%90_%D0%9F%D0%9E%D0%94%D0%9E%D0%93%D0%A0%D0%95%D0%92%2F&queryId=20221116213327-81b1930b-6cad-4f88-8a49-4985ecf35cbd&selectSuggest=%D0%A8%D0%9B%D0%90%D0%9D%D0%93%20%D0%9D%D0%90%20%D0%9F%D0%9E%D0%94%D0%9E%D0%93%D0%A0%D0%95%D0%92%2020");
+        second.setUrl("null" + "zapchasti-20-%D0%A8%D0%9B%D0%90%D0%9D%D0%93_%D0%9D%D0%90_%D0%9F%D0%9E%D0%94%D0%9E%D0%93%D0%A0%D0%95%D0%92");
         second.setCost(0);
-        second.setDescription("ШЛАНГ НА ПОДОГРЕВ 20");
-        response.getSparePartList().add(first);
-        response.getSparePartList().add(second);
+        second.setDescription("ШЛАНГ НА ПОДОГРЕВ 20 ");
+        List<SparePart> template = new ArrayList<>();
+        template.add(first);
+        template.add(second);
 
 
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = mapper.readTree(node.getBody());
         JsonNode jsonNode = root.path("Suggestions");
-
-        Response responseExtractNode = new Response();
-
-//        avtoProServiceImp.extractJsonNode(responseExtractNode, jsonNode,);
-
-//        CompletableFuture<Response> responseGetResponseHttpEntity = avtoProServiceImp.getResponseFromHttpEntity(node, "Suggestions", executor);
-
-        assertEquals(response, responseExtractNode);
-//        assertEquals(response, responseGetResponseHttpEntity.join());
+//todo this mock good?
+        when(costFetcher.setCostFromRemoteHost(anyString(),eq(template),anyString())).thenReturn(template);
+        List<SparePart> test = avtoProService.extractSpareParts(jsonNode);
     }
 }
-*/

@@ -1,7 +1,7 @@
 package com.carspareparts.finder.helper;
 
-import com.carspareparts.finder.string_enum.StringRegexHolder;
-import com.carspareparts.finder.string_enum.WordAndPunctuationHolder;
+import com.carspareparts.finder.helper.stringenumholder.StringRegexHolder;
+import com.carspareparts.finder.helper.stringenumholder.WordAndPunctuationHolder;
 import com.carspareparts.finder.dto.SparePart;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;

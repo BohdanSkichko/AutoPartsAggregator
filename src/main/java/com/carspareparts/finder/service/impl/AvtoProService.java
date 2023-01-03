@@ -1,14 +1,14 @@
 package com.carspareparts.finder.service.impl;
 
 import com.carspareparts.finder.dto.Response;
-import com.carspareparts.finder.string_enum.BusinessNameHolder;
+import com.carspareparts.finder.helper.stringenumholder.BusinessNameHolder;
 import com.carspareparts.finder.dto.Query;
 import com.carspareparts.finder.dto.SparePart;
 import com.carspareparts.finder.exception.BusinessException;
 import com.carspareparts.finder.helper.CostFetcher;
 import com.carspareparts.finder.helper.StringHttpWorker;
 import com.carspareparts.finder.service.SparePartService;
-import com.carspareparts.finder.string_enum.WordAndPunctuationHolder;
+import com.carspareparts.finder.helper.stringenumholder.WordAndPunctuationHolder;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;

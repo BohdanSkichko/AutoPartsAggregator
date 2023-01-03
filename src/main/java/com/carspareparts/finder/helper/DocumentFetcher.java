@@ -1,7 +1,7 @@
 package com.carspareparts.finder.helper;
 
 import com.carspareparts.finder.exception.BusinessException;
-import com.carspareparts.finder.string_enum.HttpHeaderNameHolder;
+import com.carspareparts.finder.helper.stringenumholder.HttpHeaderNameHolder;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;

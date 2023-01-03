@@ -2,7 +2,7 @@ package com.carspareparts.finder.service.impl;
 
 import com.carspareparts.finder.dto.Response;
 import com.carspareparts.finder.helper.SiteParser;
-import com.carspareparts.finder.string_enum.BusinessNameHolder;
+import com.carspareparts.finder.helper.stringenumholder.BusinessNameHolder;
 import com.carspareparts.finder.service.SparePartService;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;

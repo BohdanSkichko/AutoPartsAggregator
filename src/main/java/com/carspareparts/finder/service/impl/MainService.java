@@ -4,7 +4,7 @@ import com.carspareparts.finder.dto.Response;
 import com.carspareparts.finder.dto.SparePart;
 import com.carspareparts.finder.helper.UserExcelExporter;
 import com.carspareparts.finder.service.SparePartService;
-import com.carspareparts.finder.string_enum.WordAndPunctuationHolder;
+import com.carspareparts.finder.helper.stringenumholder.WordAndPunctuationHolder;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 @EqualsAndHashCode
 public class MainService implements SparePartService {
     private final static String EXCEL_FILE_NAME = "Spare Parts.xlsx";
+    private final static String ATTACHMENT = "ATTACHMENT";
     @Autowired
     private AvtoProService avtoProService;
     @Autowired
@@ -46,7 +47,7 @@ public class MainService implements SparePartService {
     private DemexUaService demexUaService;
     @Autowired
     private Executor executor;
-    private final String ATTACHMENT = "ATTACHMENT";
+
 
     @Override
     public Response searchSparePartBySerialNumber(String serialNumber) {
