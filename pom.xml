@@ -8,11 +8,11 @@
         <version>2.7.4</version>
         <relativePath/>
     </parent>
-    <groupId>com.example</groupId>
-    <artifactId>CarSparePartsFinder</artifactId>
+    <groupId>com.carspareparts</groupId>
+    <artifactId>Finder</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>CarSparePartsFinder</name>
-    <description>CarSparePartsFinder</description>
+    <name>Finder</name>
+    <description>Finder</description>
     <properties>
         <java.version>1.8</java.version>
     </properties>

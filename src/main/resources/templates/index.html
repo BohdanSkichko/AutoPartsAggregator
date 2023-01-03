@@ -1,5 +1,4 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-
 <head>
     <title>Search spare part</title>
 
@@ -24,15 +23,24 @@
         <hr/>
         <h3>Search spare part</h3>
         <form name="search" th:action="@{search}" th:object="${serialNumber}" method="GET">
-            <input type="text" th:field="*{serialNumber}" class="form-control col-12 mb-5"
-                   placeholder="Enter serial number for best results" name="serialNumber" required/>
+            <input type="text"
+                   th:field="*{serialNumber}"
+                   class="form-control col-12 mb-5"
+                   placeholder="Enter serial number for best results"
+                   pattern="^[\w_:. а-яА-ЯІіЇїєЄ-]*$"
+                   minlength="2"
+                   name="serialNumber"
+                   required/>
+            <span class="validity"></span>
+            <p>Serial number must be consists just numbers and words.</p>
+            <p>Supports EN,UKR and punctuation: - _ : .</p>
             <button type="submit" class="btn btn-primary col-2" id="submit">Search</button>
         </form>
     </div>
     <script>
         $('#submit').click(function () {
             var input = document.forms["search"]["serialNumber"].value;
-            if (input !== "") {
+            if (input.validity === true) {
                 $("#load").show();
             }
         });
