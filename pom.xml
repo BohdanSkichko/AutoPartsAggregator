@@ -8,11 +8,11 @@
         <version>2.7.4</version>
         <relativePath/>
     </parent>
-    <groupId>com.carspareparts</groupId>
-    <artifactId>Finder</artifactId>
+    <groupId>com.aggregator</groupId>
+    <artifactId>autoparts</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>Finder</name>
-    <description>Finder</description>
+    <name>AutoPartsAggregator</name>
+    <description>Auto Parts Aggregator</description>
     <properties>
         <java.version>1.8</java.version>
     </properties>
@@ -20,15 +20,15 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-configuration-processor</artifactId>
-            <optional>true</optional>
+            <groupId>org.springframework.retry</groupId>
+            <artifactId>spring-retry</artifactId>
+            <version>1.2.5.RELEASE</version>
         </dependency>
 
         <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.5.13</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
         </dependency>
 
         <dependency>

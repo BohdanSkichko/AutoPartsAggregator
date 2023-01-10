@@ -1,0 +1,147 @@
+{
+    "FoundByDescription": null,
+    "Region": {
+        "Id": 1,
+        "Name": "Europe",
+        "Link": "catalog"
+    },
+    "Make": null,
+    "Model": null,
+    "EngineId": null,
+    "Category": null,
+    "Applicability": null,
+    "CrossgroupId": null,
+    "BrandName": null,
+    "PartNumber": null,
+    "ResultEngineId": null,
+    "ResultCrossgroupId": null,
+    "Part": null,
+    "PartFitsVehicle": null,
+    "SuggestionType": "Part",
+    "Suggestions": [
+        {
+            "Title": "AC Delco 20",
+            "TitleBlocks": [
+                {
+                    "Type": "Text",
+                    "Str": "AC Delco "
+                },
+                {
+                    "Type": "MatchesQuery",
+                    "Str": "20"
+                }
+            ],
+            "NextQueryString": "",
+            "Uri": "/system/search/result/.aspx?sId=20230103201638-b3cd7816-da0a-4ad7-8879-b8f5f772967b&seqId=0&sInd=0&uri=%2Fpart-20-AC_DELCO-435%2F&queryId=20230103201954-c3969e43-8e56-405b-9e6a-63611e30b80e&selectSuggest=AC%20Delco%2020",
+            "FoundMake": null,
+            "FoundModel": null,
+            "FoundEngine": null,
+            "FoundCategory": null,
+            "FoundCrossgroupApplicability": null,
+            "FoundPart": {
+                "Part": {
+                    "Brand": {
+                        "Id": 195,
+                        "Name": "AC Delco",
+                        "Link": "ac-delco",
+                        "ViewName": "AC Delco",
+                        "Country": null,
+                        "Site": null,
+                        "AverangeRating": 0.0,
+                        "CountFeedback": 0,
+                        "Path": "AC_DELCO",
+                        "FoundationYear": 0,
+                        "Description": null,
+                        "CountUniquePart": 0,
+                        "CountSubType": 0,
+                        "Logo": null,
+                        "Concern": null,
+                        "ConcernParticipants": null,
+                        "IsOriginal": false
+                    },
+                    "FullNr": "20",
+                    "ShortNr": "20",
+                    "CrossgroupId": 2084178521,
+                    "Crossgroup": null,
+                    "Images": null,
+                    "Parameters": null,
+                    "IsRestoration": false,
+                    "PartFeedUri": null,
+                    "IsSyntheticPartNumber": false
+                },
+                "SellersCount": null,
+                "PriceMin": null,
+                "PriceMax": null,
+                "Description": null
+            },
+            "PartFitsVehicle": null,
+            "PartFitsEngine": null
+        },
+        {
+            "Title": "Brisk 20",
+            "TitleBlocks": [
+                {
+                    "Type": "Text",
+                    "Str": "Brisk 20 "
+                },
+                {
+                    "Type": "MatchesQuery",
+                    "Str": "20"
+                }
+            ],
+            "NextQueryString": "",
+            "Uri": "/system/search/result/.aspx?sId=20230103201638-b3cd7816-da0a-4ad7-8879-b8f5f772967b&seqId=0&sInd=108&uri=%2Fzapchasti-20-%D0%A8%D0%9B%D0%90%D0%9D%D0%93_%D0%9D%D0%90_%D0%9F%D0%9E%D0%94%D0%9E%D0%93%D0%A0%D0%95%D0%92%2F&queryId=20230103201954-c3969e43-8e56-405b-9e6a-63611e30b80e&selectSuggest=%D0%A8%D0%9B%D0%90%D0%9D%D0%93%20%D0%9D%D0%90%20%D0%9F%D0%9E%D0%94%D0%9E%D0%93%D0%A0%D0%95%D0%92%2020",
+            "FoundMake": null,
+            "FoundModel": null,
+            "FoundEngine": null,
+            "FoundCategory": null,
+            "FoundCrossgroupApplicability": null,
+            "FoundPart": {
+                "Part": {
+                    "Brand": {
+                        "Id": null,
+                        "Name": "Brisk 20",
+                        "Link": null,
+                        "ViewName": null,
+                        "Country": null,
+                        "Site": null,
+                        "AverangeRating": 0.0,
+                        "CountFeedback": 0,
+                        "Path": "Brisk 20",
+                        "FoundationYear": 0,
+                        "Description": null,
+                        "CountUniquePart": 0,
+                        "CountSubType": 0,
+                        "Logo": null,
+                        "Concern": null,
+                        "ConcernParticipants": null,
+                        "IsOriginal": false
+                    },
+                    "FullNr": "20",
+                    "ShortNr": "20",
+                    "CrossgroupId": null,
+                    "Crossgroup": null,
+                    "Images": null,
+                    "Parameters": null,
+                    "IsRestoration": false,
+                    "PartFeedUri": null,
+                    "IsSyntheticPartNumber": false
+                },
+                "SellersCount": null,
+                "PriceMin": null,
+                "PriceMax": null,
+                "Description": "6282031782"
+            },
+            "PartFitsVehicle": null,
+            "PartFitsEngine": null
+        }
+    ],
+    "FeedUri": null,
+    "IsAnythingFound": true,
+    "DebugInfo": {
+        "Messages": []
+    },
+    "perfLog": "total: 19, descr: 0, mod: 2, code: 6, cnf: 9, man: 0, hypo: 0, other: 2",
+    "VIN": null,
+    "VehicleCategories": null
+}

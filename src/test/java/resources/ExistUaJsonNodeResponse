@@ -1,0 +1,344 @@
+{
+  "data": {
+    "results": {
+      "product": {
+        "list": [
+        ]
+      },
+      "oeOffers": {
+        "offers": [
+
+        ],
+        "key": "cb891a52-5547-48d7-b4b7-9610c533c4fd"
+      },
+      "analogOffers": {
+        "offers": [
+
+        ],
+        "key": "cb891a52-5547-48d7-b4b7-9610c533c4fd"
+      }
+    },
+    "multipleResults": [
+      {
+        "prag_id": 8189556,
+        "upc": "2002",
+        "description": "Wheel Brake Cylinder",
+        "trademark_description": "ABS",
+        "image": "https://images2.exist.ua/media/images/products/2022/05/2022-25-05_12-32-33_13298699.jpg"
+      },
+      {
+        "prag_id": 28108559,
+        "upc": "2002",
+        "description": "Distributor cap",
+        "trademark_description": "Angli",
+        "image": "https://images2.exist.ua/media/images/products/2020/01/7354132_28108559_YxUBXCT.jpg"
+      }
+   ],
+    "minDelivery": null,
+    "minPrice": null,
+    "recommended": null,
+    "orderBy": "price",
+    "sortTypes": [
+      {
+        "key": "price",
+        "title": "Sort price"
+      },
+      {
+        "key": "delivery_time",
+        "title": "Sort delivery"
+      },
+      {
+        "key": "-in_stock",
+        "title": "Sort availability"
+      },
+      {
+        "key": "title",
+        "title": "Sort title"
+      },
+      {
+        "key": "popular",
+        "title": "Sort popularity"
+      }
+    ],
+    "count": 48,
+    "filter": {
+      "filters": [
+        {
+          "name": "Brand",
+          "slug": "trademark",
+          "type": "checkbox",
+          "values": [
+            {
+              "slug": "abs",
+              "value": "ABS",
+              "price": "0"
+            },
+            {
+              "slug": "angli",
+              "value": "Angli",
+              "price": "0"
+            },
+            {
+              "slug": "ap-lpr",
+              "value": "AP (LPR)",
+              "price": "0"
+            },
+            {
+              "slug": "autotechteile",
+              "value": "Autotechteile",
+              "price": "0"
+            },
+            {
+              "slug": "bcguma",
+              "value": "Bcguma",
+              "price": "0"
+            },
+            {
+              "slug": "bgs",
+              "value": "BGS",
+              "price": "0"
+            },
+            {
+              "slug": "birth",
+              "value": "Birth",
+              "price": "0"
+            },
+            {
+              "slug": "carrab",
+              "value": "Carrab",
+              "price": "0"
+            },
+            {
+              "slug": "cdx",
+              "value": "CDX",
+              "price": "0"
+            },
+            {
+              "slug": "cevam",
+              "value": "Cevam",
+              "price": "0"
+            },
+            {
+              "slug": "climair",
+              "value": "Climair",
+              "price": "0"
+            },
+            {
+              "slug": "eberspaecher",
+              "value": "Eberspaecher",
+              "price": "0"
+            },
+            {
+              "slug": "fare",
+              "value": "Fare",
+              "price": "0"
+            },
+            {
+              "slug": "ferron",
+              "value": "Ferron",
+              "price": "0"
+            },
+            {
+              "slug": "flosser",
+              "value": "Flosser",
+              "price": "0"
+            },
+            {
+              "slug": "frap",
+              "value": "Frap",
+              "price": "0"
+            },
+            {
+              "slug": "gabriel",
+              "value": "Gabriel",
+              "price": "0"
+            },
+            {
+              "slug": "general-motors",
+              "value": "General Motors",
+              "price": "0"
+            },
+            {
+              "slug": "ghibaudi",
+              "value": "Ghibaudi",
+              "price": "0"
+            },
+            {
+              "slug": "gunes",
+              "value": "Gunes",
+              "price": "0"
+            },
+            {
+              "slug": "hazet",
+              "value": "Hazet",
+              "price": "0"
+            },
+            {
+              "slug": "impergom",
+              "value": "Impergom",
+              "price": "0"
+            },
+            {
+              "slug": "ipd",
+              "value": "IPD",
+              "price": "0"
+            },
+            {
+              "slug": "jtc",
+              "value": "JTC",
+              "price": "0"
+            },
+            {
+              "slug": "kawe",
+              "value": "Kawe",
+              "price": "0"
+            },
+            {
+              "slug": "kuryakyn",
+              "value": "Kuryakyn",
+              "price": "0"
+            },
+            {
+              "slug": "laser-tools",
+              "value": "Laser Tools",
+              "price": "0"
+            },
+            {
+              "slug": "lpr",
+              "value": "LPR",
+              "price": "0"
+            },
+            {
+              "slug": "malo",
+              "value": "Malo",
+              "price": "0"
+            },
+            {
+              "slug": "metgum",
+              "value": "Metgum",
+              "price": "0"
+            },
+            {
+              "slug": "mikoda",
+              "value": "Mikoda",
+              "price": "0"
+            },
+            {
+              "slug": "national",
+              "value": "National",
+              "price": "0"
+            },
+            {
+              "slug": "ngk",
+              "value": "NGK",
+              "price": "0"
+            },
+            {
+              "slug": "osvat",
+              "value": "Osvat",
+              "price": "0"
+            },
+            {
+              "slug": "pemebla",
+              "value": "Pemebla",
+              "price": "0"
+            },
+            {
+              "slug": "polgum",
+              "value": "Polgum",
+              "price": "0"
+            },
+            {
+              "slug": "quick-brake",
+              "value": "Quick brake",
+              "price": "0"
+            },
+            {
+              "slug": "raicam",
+              "value": "Raicam",
+              "price": "0"
+            },
+            {
+              "slug": "ral",
+              "value": "RAL",
+              "price": "0"
+            },
+            {
+              "slug": "remkaflex",
+              "value": "Remkaflex",
+              "price": "0"
+            },
+            {
+              "slug": "rotinger",
+              "value": "Rotinger",
+              "price": "0"
+            },
+            {
+              "slug": "sachs",
+              "value": "SACHS",
+              "price": "0"
+            },
+            {
+              "slug": "samko",
+              "value": "Samko",
+              "price": "0"
+            },
+            {
+              "slug": "sigam",
+              "value": "Sigam",
+              "price": "0"
+            },
+            {
+              "slug": "timken",
+              "value": "Timken",
+              "price": "0"
+            },
+            {
+              "slug": "tomex",
+              "value": "Tomex",
+              "price": "0"
+            },
+            {
+              "slug": "ucel",
+              "value": "UCEL",
+              "price": "0"
+            }
+          ]
+        },
+        {
+          "name": "Price range",
+          "pill_name": "????",
+          "max": "2355",
+          "slug": "price",
+          "type": "range"
+        },
+        {
+          "name": "Delivery time",
+          "pill_name": "????????",
+          "max": 14,
+          "slug": "delivery",
+          "type": "range"
+        },
+        {
+          "name": "Quantity",
+          "pill_name": "??????????",
+          "max": 24,
+          "slug": "quantity",
+          "type": "range"
+        }
+      ]
+    },
+    "query": "2002"
+  },
+  "price_source": "prag",
+  "seo": {
+    "title": "???? ? ??????????",
+    "description": null,
+    "seoText": null,
+    "h1": "",
+    "seo_index": true,
+    "url": null,
+    "text": null,
+    "canonical_url": null
+  }
+}

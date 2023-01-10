@@ -33,14 +33,14 @@
                    required/>
             <span class="validity"></span>
             <p>The serial number must consist of numbers and words only.</p>
-            <p>Supports EN,UKR and punctuation: - _ : .</p>
+            <p>Supports EN, UKR</p>
             <button type="submit" class="btn btn-primary col-2" id="submit">Search</button>
         </form>
     </div>
     <script>
         $('#submit').click(function () {
             var input = document.forms["search"]["serialNumber"].value;
-            if (input.validity === true) {
+            if (input.length > 2){
                 $("#load").show();
             }
         });
