@@ -10,7 +10,6 @@ class AvtoPlusServiceTest {
     @InjectMocks
     private AvtoPlusService avtoPlusService = new AvtoPlusService();
 
-
     @Test
     void getPagesQuantityInDocument() {
     }

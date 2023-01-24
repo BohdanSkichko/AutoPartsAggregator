@@ -83,6 +83,7 @@ public class MainService implements SparePartService {
             result = ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
                     .headers(httpHeaders -> httpHeaders.add(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString()))
+                    .headers(httpHeaders -> httpHeaders.add("X-Accel-Buffering", "yes"))
                     .body(new InputStreamResource(userExcelExporter.export()));
         } catch (IOException e) {
             log.error(e.getMessage() +

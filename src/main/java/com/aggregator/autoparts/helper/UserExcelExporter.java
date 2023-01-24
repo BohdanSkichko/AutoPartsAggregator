@@ -10,7 +10,10 @@ import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 @Slf4j
@@ -21,12 +24,12 @@ import java.util.List;
 @RequiredArgsConstructor
 @AllArgsConstructor
 public class UserExcelExporter {
-    private XSSFWorkbook workbook;
-    private XSSFSheet sheet;
-    private List<SparePart> spareParts;
     private static int COLUM_COST = 0;
     private static int COLUM_DESCRIPTION = 1;
     private static int COLUM_URL = 2;
+    private XSSFWorkbook workbook;
+    private XSSFSheet sheet;
+    private List<SparePart> spareParts;
 
     public UserExcelExporter(List<SparePart> spareParts) {
         this.spareParts = spareParts;
@@ -84,8 +87,11 @@ public class UserExcelExporter {
         writeHeaderLine();
         writeDataLines();
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream(spareParts.toString().getBytes().length);
+
+        outputStream.flush();
         workbook.write(outputStream);
         workbook.close();
+        outputStream.close();
         byte[] bytes = outputStream.toByteArray();
         return new ByteArrayInputStream(bytes);
     }

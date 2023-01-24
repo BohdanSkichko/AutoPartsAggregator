@@ -47,7 +47,7 @@ public class SiteParser {
                     log.info("find spare parts " + getClass().getTypeName() + " " + Thread.currentThread().getName());
                     try {
                         Response result = new Response();
-                        result.getSparePartList().addAll(extractData(serialNumber, url, className));
+                        result.getSparePartList().addAll(fetchDataFromRemoteHost(serialNumber, url, className));
                         return result;
                     } catch (Exception e) {
                         log.error(e.getMessage() + " when trying to call remote host " + e);
@@ -56,7 +56,7 @@ public class SiteParser {
                 }, executor);
     }
 
-    private List<SparePart> extractData(String serialNumber, String url, String className) {
+    private List<SparePart> fetchDataFromRemoteHost(String serialNumber, String url, String className) {
         List<SparePart> sparePartList = new ArrayList<>();
         try {
             Document document = Jsoup.connect(getUrl(url) + serialNumber).get();

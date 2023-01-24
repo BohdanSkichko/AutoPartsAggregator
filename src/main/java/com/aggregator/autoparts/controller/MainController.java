@@ -12,23 +12,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;
-import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 @Slf4j
 @RestController
 @AllArgsConstructor
-@SessionAttributes({"response"})
+@SessionAttributes("response")
 @RequestMapping(path = "/")
 public class MainController {
     @Autowired
     private final MainService mainService;
-
-    @ModelAttribute("response")
-    public Response getResponse() {
-        return new Response();
-    }
 
     @GetMapping(value = "search")
     @ApiOperation(value = "Get price and reference",
@@ -40,18 +34,23 @@ public class MainController {
             @ApiResponse(code = 400, message = "bad request syntax"),
             @ApiResponse(code = 404, message = "not found")
     })
-    public ModelAndView getSparePartBySerialNumber(@ModelAttribute("serialNumber") String serialNumber) {
+    public ModelAndView getSparePartBySerialNumber(@ModelAttribute("serialNumber") String serialNumber,
+                                                   @ModelAttribute("response") Response response
+
+    ) {
         ModelAndView result = new ModelAndView("spare-part");
-        Response response = new Response();
         try {
             response = mainService.searchSparePartBySerialNumber(serialNumber);
         } catch (Exception e) {
             response.setError(e.getMessage());
         }
-        ModelMap modelMap = new ModelMap();
-        modelMap.put("response", response);
-        result.addAllObjects(modelMap);
+        result.addObject("response", response);
         return result;
+    }
+
+    @ModelAttribute("response")
+    public Response createResponse() {
+        return new Response();
     }
 
     @GetMapping(path = {"index", "/"})
@@ -62,8 +61,9 @@ public class MainController {
         return modelAndView;
     }
 
-    @GetMapping(path = "saveToXlsx")
+    @PostMapping(path = "saveToXlsx")
     private ResponseEntity<InputStreamResource> exportToExcel(@ModelAttribute("response") Response response) {
+        log.debug("ExportToExcel Response: " + response);
         return mainService.exportToExcel(response.getSparePartList());
     }
 }

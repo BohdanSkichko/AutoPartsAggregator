@@ -50,14 +50,11 @@ public class CostFetcher {
                 if (element == null) {
                     element = getElementFromRemoteHost(sparePartIndex, sparePartList, className);
                 }
-//                log.debug("Element: " + element);
                 if (element != null) {
-//                    log.debug("Cost: " + element.text());
                     String cost = element.text()
                             .replaceAll(RegexHolder.REPLACE_TEXT.getPath(), "")
                             .replaceAll(WordAndPunctuationHolder.COMA.getPath(), WordAndPunctuationHolder.DOT.getPath())
                             .replaceAll(RegexHolder.REPLACE_HYPHEN_PRICE.getPath(), "");
-//                    log.debug("After parse cost: " + cost);
                     if (!cost.isEmpty()) sparePartList.get(sparePartIndex).setCost(Double.parseDouble(cost));
                 }
             } catch (Exception e) {

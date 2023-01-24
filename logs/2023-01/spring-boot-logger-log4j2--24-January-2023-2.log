@@ -1,0 +1,4 @@
+2023-01-24 19:38:21,937 INFO o.s.b.StartupInfoLogger [main] Starting AutoPartsAggregatorApplication using Java 1.8.0-332 on Kre with PID 640 (C:\Users\Nick\IdeaProjects\Demo\target\classes started by Nick in C:\Users\Nick\IdeaProjects\Demo)
+2023-01-24 19:38:21,949 DEBUG o.s.b.StartupInfoLogger [main] Running with Spring Boot v2.7.4, Spring v5.3.23
+2023-01-24 19:38:21,951 INFO o.s.b.SpringApplication [main] No active profile set, falling back to 1 default profile: "default"
+2023-01-24 19:38:21,952 DEBUG o.s.b.SpringApplication [main] Loading source class com.aggregator.autoparts.AutoPartsAggregatorApplication

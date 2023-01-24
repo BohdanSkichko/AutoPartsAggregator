@@ -19,7 +19,7 @@ import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class DocumentFetcherTest {
@@ -30,16 +30,16 @@ class DocumentFetcherTest {
 
     @Test
     public void asserEqualsDocBodyTextWhenGetDocumentFromRemoteHost() throws IOException {
-        byte[] testBytes = Files.readAllBytes(Paths.get("src/test/java/resources/DocumentDocumentFetcher"));
-        String bodyExpectedDocument = new String(testBytes);
+        byte[] expectedBytes = Files.readAllBytes(Paths.get("src/test/java/resources/DocumentDocumentFetcher"));
+        String expectedDocumentBody = new String(expectedBytes);
 
         ResponseEntity<String> entity = new ResponseEntity<>("some text in this Document", HttpStatus.OK);
 
-        when(restTemplate.exchange(eq("myUrl"), ArgumentMatchers.any(HttpMethod.class),
+        when(restTemplate.exchange(eq("testUrl"), ArgumentMatchers.any(HttpMethod.class),
                 ArgumentMatchers.any(HttpEntity.class), eq(String.class))).thenReturn(entity);
 
-        Document test = documentFetcher.getDocumentFromRemoteHost("myUrl");
-        String testBody = test.body().text();
-        assertEquals(bodyExpectedDocument,testBody);
+        Document resultDocument = documentFetcher.getDocumentFromRemoteHost("testUrl");
+        String resultDocumentBody = resultDocument.body().text();
+        assertEquals(expectedDocumentBody, resultDocumentBody);
     }
 }

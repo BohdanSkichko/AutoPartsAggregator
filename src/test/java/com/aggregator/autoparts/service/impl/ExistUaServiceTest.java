@@ -46,15 +46,15 @@ class ExistUaServiceTest {
 
 
     @Test
-    void asserEqualsDataSparePartsWhenExtractSpareParts() throws IOException {
-        byte[] testBytes = Files.readAllBytes(Paths.get("src/test/java/resources/ExistUaJsonNodeResponse"));
-        String testString = new String(testBytes);
+    void assertEqualsDataSparePartsWhenExtractSpareParts() throws IOException {
+        byte[] expectedBytes = Files.readAllBytes(Paths.get("src/test/java/resources/ExistUaJsonNodeResponse"));
+        String expectedString = new String(expectedBytes);
 
-        HttpEntity<String> testEntity = new HttpEntity<>(testString);
+        HttpEntity<String> expectedEntity = new HttpEntity<>(expectedString);
 
         ObjectMapper mapper = new ObjectMapper();
-        JsonNode testRoot = mapper.readTree(testEntity.getBody());
-        JsonNode testNode = testRoot.findPath("multipleResults");
+        JsonNode expectedRoot = mapper.readTree(expectedEntity.getBody());
+        JsonNode expectedNode = expectedRoot.findPath("multipleResults");
 
         SparePart first = new SparePart();
         first.setCost(0);
@@ -72,9 +72,9 @@ class ExistUaServiceTest {
 
         when(costFetcher.setCostFromRemoteHost(anyString(), eq(expectedList), anyString())).thenReturn(expectedList);
 
-        List<SparePart> test = existUaService.extractSpareParts(testNode);
+        List<SparePart> resultList = existUaService.extractSpareParts(expectedNode);
 
-        assertEquals(expectedList, test);
+        assertEquals(expectedList, resultList);
 
     }
 

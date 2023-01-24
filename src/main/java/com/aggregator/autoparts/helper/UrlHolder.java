@@ -9,10 +9,11 @@ import java.util.List;
 @Component
 @EqualsAndHashCode
 public class UrlHolder {
+    public static final String NOT_FOUND = "URL not found";
     @Value("#{'${website.urls}'.split(',')}")
     private List<String> urls;
-    public static final String NOT_FOUND = "not found URL";
-    public String getUrl(String url){
+
+    public String getUrl(String url) {
         return urls.stream().filter(s -> s.contains(url)).findFirst().orElse(NOT_FOUND);
     }
 }
