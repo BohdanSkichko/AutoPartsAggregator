@@ -53,8 +53,7 @@ public class ExistUaService implements SparePartService, StringHttpWorker {
     @Override
     public Response searchSparePartBySerialNumber(String serialNumber) {
         HttpEntity<String> response = callRemoteHost(serialNumber);
-        return getResponseFromHttpEntity(response, HttpElHolder.MULTIPLE_RESULTS.getPath(),
-                executor).join();
+        return getResponseFromHttpEntity(response, HttpElHolder.MULTIPLE_RESULTS.getPath(), executor).join();
     }
 
     @Override
@@ -75,7 +74,7 @@ public class ExistUaService implements SparePartService, StringHttpWorker {
             }
             sparePartList = costFetcher.setCostFromRemoteHost(HttpElHolder.SPAN.getPath(), sparePartList, HttpElHolder.EXIST_GET_BY_CLASS.getPath());
         } catch (Exception e) {
-            log.error(e.getMessage() + "trying to extract Json Node ", e);
+            log.error(e.getMessage() + " trying to extract Json Node ", e);
         }
         return sparePartList;
     }

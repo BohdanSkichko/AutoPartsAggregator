@@ -21,9 +21,6 @@ public class AvtozapchastiService implements SparePartService {
 
     @Override
     public Response searchSparePartBySerialNumber(String serialNumber) {
-        Response response = siteParser.searchSparePartBySerialNumber(serialNumber, url,
-                HttpElHolder.NEW_PRICE_PULL.getPath());
-        log.debug("AVTOZAPCHASTI: " + response.getSparePartList());
-        return response;
+        return siteParser.searchSparePartBySerialNumber(serialNumber, url, HttpElHolder.NEW_PRICE_PULL.getPath());
     }
 }

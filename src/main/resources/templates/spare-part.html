@@ -22,8 +22,7 @@
         <hr/>
         <a class="btn btn-primary" th:href="@{index}">New search</a>
 
-        <a class="btn btn-primary" th:onclick="'javascript:exportExcel();'"
-           th:object="${response}" id="saveToXlsx">Export to Excel</a>
+        <a class="btn btn-primary" th:onclick="'javascript:exportExcel();'" id="saveToXlsx">Export to Excel</a>
         <hr/>
         <div id="load" style="display:none">
             Please wait... Writing data...
@@ -82,7 +81,7 @@
     function exportExcel() {
         const http = new XMLHttpRequest();
         const url = 'saveToXlsx';
-        http.open("POST", url);
+        http.open("GET", url);
         http.responseType = 'blob';
         $("#load").show();
         http.send();

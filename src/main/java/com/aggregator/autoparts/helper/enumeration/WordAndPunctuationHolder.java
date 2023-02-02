@@ -8,7 +8,7 @@ public enum WordAndPunctuationHolder {
     COMA(","),
     DOT("."),
     WHITE_SPACE(" "),
-        ;
+    ;
     private final String path;
 
     WordAndPunctuationHolder(String path) {

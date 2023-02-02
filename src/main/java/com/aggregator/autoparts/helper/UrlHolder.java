@@ -16,4 +16,5 @@ public class UrlHolder {
     public String getUrl(String url) {
         return urls.stream().filter(s -> s.contains(url)).findFirst().orElse(NOT_FOUND);
     }
+
 }

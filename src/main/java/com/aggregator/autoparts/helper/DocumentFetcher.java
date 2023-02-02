@@ -1,9 +1,7 @@
 package com.aggregator.autoparts.helper;
 
 import com.aggregator.autoparts.exception.BusinessException;
-import com.aggregator.autoparts.helper.enumeration.HttpElHolder;
 import com.aggregator.autoparts.helper.enumeration.HttpHeaderHolder;
-import com.aggregator.autoparts.helper.enumeration.WordAndPunctuationHolder;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -16,7 +14,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Objects;

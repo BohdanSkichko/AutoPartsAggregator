@@ -57,20 +57,16 @@ public class MainService implements SparePartService {
                 .sorted(Comparator.comparingDouble(SparePart::getCost))
                 .collect(Collectors.toList());
         result.setSparePartList(withCost);
-        log.debug("MainService searchSparePartBySerialNumber sorted result: " + withCost);
-        result.setSparePartList(withCost);
         return result;
     }
 
     private List<Response> interrogateRemoteHosts(String serialNumber) {
         List<SparePartService> servicesToCall = Arrays.asList(avtozapchastiService, avtoProService,
                 avtoPlusService, demexUaService, existUaService, ukrPartsService);
-        List<Response> list = servicesToCall.parallelStream()
+        return servicesToCall.parallelStream()
                 .map(s -> (s.searchSparePartBySerialNumber(serialNumber)))
                 .unordered()
                 .collect(Collectors.toList());
-        log.debug("List Responses: " + list);
-        return list;
     }
 
     public ResponseEntity<InputStreamResource> exportToExcel(List<SparePart> sparePartList) {
@@ -83,7 +79,7 @@ public class MainService implements SparePartService {
             result = ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
                     .headers(httpHeaders -> httpHeaders.add(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString()))
-                    .headers(httpHeaders -> httpHeaders.add("X-Accel-Buffering", "yes"))
+                    .headers(httpHeaders -> httpHeaders.add("X-Accel-Buffering", "no"))
                     .body(new InputStreamResource(userExcelExporter.export()));
         } catch (IOException e) {
             log.error(e.getMessage() +

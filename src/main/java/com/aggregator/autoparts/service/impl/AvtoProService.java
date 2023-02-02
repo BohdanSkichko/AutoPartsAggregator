@@ -54,8 +54,7 @@ public class AvtoProService implements SparePartService, StringHttpWorker {
     @Override
     public Response searchSparePartBySerialNumber(String serialNumber) {
         HttpEntity<String> response = callRemoteHost(serialNumber);
-        return getResponseFromHttpEntity(response, HttpElHolder.SUGGESTIONS.getPath(),
-                executor).join();
+        return getResponseFromHttpEntity(response, HttpElHolder.SUGGESTIONS.getPath(), executor).join();
     }
 
     @Override

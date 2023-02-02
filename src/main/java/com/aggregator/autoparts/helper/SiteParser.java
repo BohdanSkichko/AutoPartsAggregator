@@ -1,9 +1,9 @@
 package com.aggregator.autoparts.helper;
 
 import com.aggregator.autoparts.dto.Response;
+import com.aggregator.autoparts.dto.SparePart;
 import com.aggregator.autoparts.exception.BusinessException;
 import com.aggregator.autoparts.helper.enumeration.HttpElHolder;
-import com.aggregator.autoparts.dto.SparePart;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
@@ -36,9 +36,8 @@ public class SiteParser {
     @Value("#{'${website.urls}'.split(',')}")
     private List<String> urls;
 
-
     public Response searchSparePartBySerialNumber(String serialNumber, String url, String className) {
-        return callRemoteHost(serialNumber, url,className).join();
+        return callRemoteHost(serialNumber, url, className).join();
     }
 
     private CompletableFuture<Response> callRemoteHost(String serialNumber, String url, String className) {

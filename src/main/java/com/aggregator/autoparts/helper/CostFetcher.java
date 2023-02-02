@@ -87,8 +87,7 @@ public class CostFetcher {
                         sparePartList.get(indexSparePart).setCost(Double.parseDouble(cost));
                 }
             } catch (Exception e) {
-                log.error(e.getMessage() +
-                        " when trying to parse cost Spare Part" + e);
+                log.error(e.getMessage() + " when trying to parse cost Spare Part" + e);
             }
             return sparePartList.get(indexSparePart);
         }, executor);

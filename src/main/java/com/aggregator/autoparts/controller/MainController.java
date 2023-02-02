@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -35,22 +36,23 @@ public class MainController {
             @ApiResponse(code = 404, message = "not found")
     })
     public ModelAndView getSparePartBySerialNumber(@ModelAttribute("serialNumber") String serialNumber,
-                                                   @ModelAttribute("response") Response response
-
+                                                   Model model
     ) {
         ModelAndView result = new ModelAndView("spare-part");
+        Response response = new Response();
         try {
-            response = mainService.searchSparePartBySerialNumber(serialNumber);
+            if (!model.containsAttribute("response")) {
+                model.addAttribute("response");
+                result.addObject("response");
+            } else {
+                response = mainService.searchSparePartBySerialNumber(serialNumber);
+                result.addObject("response", response);
+                model.addAttribute("response", response);
+            }
         } catch (Exception e) {
             response.setError(e.getMessage());
         }
-        result.addObject("response", response);
         return result;
-    }
-
-    @ModelAttribute("response")
-    public Response createResponse() {
-        return new Response();
     }
 
     @GetMapping(path = {"index", "/"})
@@ -61,7 +63,12 @@ public class MainController {
         return modelAndView;
     }
 
-    @PostMapping(path = "saveToXlsx")
+    @ModelAttribute("response")
+    private Response createResponse(@ModelAttribute("serialNumber") String serialNumber) {
+        return mainService.searchSparePartBySerialNumber(serialNumber);
+    }
+
+    @GetMapping(path = "saveToXlsx")
     private ResponseEntity<InputStreamResource> exportToExcel(@ModelAttribute("response") Response response) {
         log.debug("ExportToExcel Response: " + response);
         return mainService.exportToExcel(response.getSparePartList());
