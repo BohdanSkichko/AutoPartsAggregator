@@ -53,6 +53,6 @@ Save the generated Excel file to your local system.
 
 ![Screenshot 1](images/home.jpg)
 
-![Screenshot 2](images/resulte.jpg)
+![Screenshot 2](images/result.jpg)
 
 
